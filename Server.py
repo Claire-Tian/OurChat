@@ -2,7 +2,7 @@ import structure as structure
 from socket import *
 from _thread import *
 import threading
-import datatime
+import datetime
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
 # Prepare a server socket
@@ -12,37 +12,56 @@ serverSocket.bind((serverHost,serverPort))
 serverSocket.listen(1) 
 list_of_connections = {}
 
-#def add_user_server(): 
-  # recieves string (user name)
-  # convert string to user object
-  # locate the chat_id in the chats hashtable
-  # if user_id exists in chat: 
-    # raise an error OR send a diff message to the client
-  # else: 
-    # insert user id into current chat's user list
-    # initialize chat's last_pushed_time to current time
-    # send confirmation message back to the client 
-    # send_message("wendy added to the chatroom")
+def add_user_server(user_id, new_user_id, chatroom_name, conn): 
+  chatid = structure.Chatnames.get(chatroom_name)
+  if chatid == None:
+    conn.send("Chatroom does not exist.") #is the 'b' a typo?
+  current_chat = structure.Chats.get(chatid) #Chat object
+  user_list = structure.demo_chat.chat_users
+  if new_user_id in structure.demo_chat.chat_users: #replace with current_chat later
+    conn.send("User is already in chat")
+  else: 
+    #insert user id into current chat's user list
+    structure.demo_chat.chat_users.append(new_user_id) 
+    #can we store full names in the User object? Then I could have the user's name instead of username
+    message = ("Added new user {uid} to the chat").format(uid = new_user_id)
+     #initialize chat's last_pushed_time to current time (for new user)
+    structure.Chat_user3.last_pushed_time = datetime.datetime.now()  
+    #add chat_id to user's list of chats
+    structure.Chat_user3.chats.append(chatid)
+     #send confirmation message back to the client 
+    conn.send(message) 
+     #send_message("wendy added to the chatroom")
+    send_message_server(user_id, chatroom_name, message, conn)
+    #when a new user is added to a chat, update chat's name? 
 
-#def delete_user_server():
-  # recieves string (user name)
-  # convert string to user object 
-  # locate chat in chats database
-  # Remove the chat_id from the user’s list of chats (in the user table)
-  # Delete the user sublist in the users dict (in the chat hash table)
-  # If the number of users = 0: 
-  #   for all users in the chatroom: 
-  #     remove the chat id from the user's list of chats
-  #   remove the chatname assoc. w/ the chat id 
-  #   remove the chat from the chatroom dict
-  # client send_message("User, you are not in this chat anymore")
-  # send confirmation message back to client. 
+
+def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
+  if user_begone_id in structure.demo_chat.chat_users: #replace with current_chat later
+    chatid = structure.Chatnames.get(chatroom_name)
+    # Delete the user sublist in the users dict (in the chat hash table)
+    structure.demo_chat.chat_users.remove(structure.Chat_user_obj('Leah')) #probably a better way to do this
+       # Remove the chat_id from the user’s list of chats (in the user table)
+    structure.Chat_user3.chats.remove(chatid)
+    #check # of users
+    if len(structure.demo_chat.chat_users) == 0: 
+      # since there are no users in the chat, we don't need to remove chatid from users list of chats
+      structure.Chatnames.remove(chatroom_name)
+      # remove the chat from the chatroom dict
+      structure.Chats.pop(structure.demo_chat.chat_id) 
+      # client send_message("User, you are not in this chat anymore")
+      message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
+      conn.send(message)
+      # send confirmation message back to client. 
+      send_message_server(user_id, chatroom_name,message,conn)
+  else: 
+    conn.send("User is not in chat.")
 
 def load_chatroom_server(user_id, chatroom_name, conn):
   #get corresponding chat_id from chat_name in Chatnames dictionary
     chatid = structure.Chatnames.get(chatroom_name)
     if chatid == None:
-        conn.send(b"Chatroom does not exist.")
+        conn.send("Chatroom does not exist.") #is the 'b' a typo? 
     else:
         #check if this user has this chat
         if chatid in structure.Users.get(user_id).chats:
@@ -62,16 +81,16 @@ def load_chatroom_server(user_id, chatroom_name, conn):
             this_chat_obj.chat_users[i].last_pushed_time = datetime.datetime.now()
             conn.send(str(m).encode())
         else:
-            conn.send(b"You are not a member of this chatroom.")
+            conn.send("You are not a member of this chatroom.")
 
 def send_message_server(user_id, chatroom_name, content, conn):
     # Get current chat_id of client
     chatid = structure.Chatnames.get(chatroom_name)
     if chatroom_name == '':
-        conn.send(b"You are not in any chatroom.")
+        conn.send("You are not in any chatroom.")
     else:
         if chatid == None:
-            conn.send(b"Chatroom does not exist.")
+            conn.send("Chatroom does not exist.")
         else:
             #search for chat_id in Chats hash table
             this_chat_obj = structure.Chats.get(chatid)
