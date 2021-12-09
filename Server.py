@@ -61,7 +61,7 @@ def load_chatroom_server(user_id, chatroom_name, conn):
   #get corresponding chat_id from chat_name in Chatnames dictionary
     chatid = structure.Chatnames.get(chatroom_name)
     if chatid == None:
-        conn.send("Chatroom does not exist.") #is the 'b' a typo? 
+        conn.send("Chatroom does not exist.")
     else:
         #check if this user has this chat
         if chatid in structure.Users.get(user_id).chats:
