@@ -2,7 +2,7 @@ import structure as structure
 from socket import *
 from _thread import *
 import threading
-import datatime
+import datetime
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
 # Prepare a server socket
@@ -42,7 +42,7 @@ def load_chatroom_server(user_id, chatroom_name, conn):
   #get corresponding chat_id from chat_name in Chatnames dictionary
     chatid = structure.Chatnames.get(chatroom_name)
     if chatid == None:
-        conn.send(b"Chatroom does not exist.")
+        conn.send("Chatroom does not exist.")
     else:
         #check if this user has this chat
         if chatid in structure.Users.get(user_id).chats:
@@ -62,16 +62,16 @@ def load_chatroom_server(user_id, chatroom_name, conn):
             this_chat_obj.chat_users[i].last_pushed_time = datetime.datetime.now()
             conn.send(str(m).encode())
         else:
-            conn.send(b"You are not a member of this chatroom.")
+            conn.send("You are not a member of this chatroom.")
 
 def send_message_server(user_id, chatroom_name, content, conn):
     # Get current chat_id of client
     chatid = structure.Chatnames.get(chatroom_name)
     if chatroom_name == '':
-        conn.send(b"You are not in any chatroom.")
+        conn.send("You are not in any chatroom.")
     else:
         if chatid == None:
-            conn.send(b"Chatroom does not exist.")
+            conn.send("Chatroom does not exist.")
         else:
             #search for chat_id in Chats hash table
             this_chat_obj = structure.Chats.get(chatid)
