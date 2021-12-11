@@ -8,7 +8,7 @@ serverPort = 6789
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
-my_user = structure.User_obj('Funing','456',chats=[]) # need to modify after demo
+my_user = structure.User_obj('Funing','456',chats=[]) # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 def add_user_client():
@@ -50,6 +50,9 @@ def create_chatroom_client(my_user):
    clientSocket.send(my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client")
    message = clientSocket.recv(1024) 
    print ('From Server:', message)
+   if message == "Chatroom creation successful!":
+       # move client's status to the new chatroom
+       my_chat_room = chatroom_name
 
 def get_my_chats_client(my_user):
   #sent back a list of chatrooms from server, which are displayed in terminal

@@ -3,7 +3,7 @@
 #Chatnames = [chat_name: chat_id, chat_name2: chat_id2]
 import datetime
 
-# define user object used in Users hashtable
+# define user object used in Users hashtable, global context
 class User_obj:
     def __init__(self, user_id = '', password = '', chats = []):
         self.user_id = user_id
@@ -11,7 +11,7 @@ class User_obj:
         self.chats = chats
 
 # define object for users in "users" field of Chats hashtable
-# How do we want to format the last pushed time? 
+# local to each chatroom
 class Chat_user_obj:
     def __init__(self, user_id = '', status = 0, last_pushed_time = datetime.datetime.now()):
         self.user_id = user_id
