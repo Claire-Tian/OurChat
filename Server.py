@@ -93,8 +93,18 @@ def send_message_server(user_id, chatroom_name, content, conn):
   #Get user_id of client
   #Print content of “chats” field for this user in Users hashtable
 
+def remove_conn(conn_user_id):
+    # make status of this user 0 in all its chats
+    if conn_user_id in list_of_connections:
+        list_of_connections.Remove(conn_user_id)
+        this_user_chats = structure.Users.get(conn_user_id).chats
+        for c_id in this_user_chats:
+            for user in structure.Chats.get(c_id).chat_users:
+                if user.user_id == conn_user_id:
+                    user.status = 0
 
 def threaded(c):
+    this_user_id = ''
     try:
         message = c.recv(1024)
         if message:
@@ -114,15 +124,16 @@ def threaded(c):
         #Send the content of the requested file to the client
         #for i in range(0, len(outputdata)):
             #c.send(outputdata[i].encode())
-        c.close()
         else:
             # message may have no content if connection is broken
             # make status of this user 0 in all its chats
-    except IOError:
-        c.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
-        c.send(str.encode("<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n","UTF-8"))
+            remove_conn(this_user_id)
         c.close()
-
+    except IOError:
+        #c.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
+        #c.send(str.encode("<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n","UTF-8"))
+        c.close()
+        remove_conn(this_user_id)
 
 
 while True:
