@@ -3,7 +3,7 @@ from socket import *
 from _thread import *
 import threading
 
-serverName = '127.0. 0.1'
+serverName = '127.0.0.1'
 serverPort = 12000
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
@@ -47,19 +47,20 @@ def send_message_client(my_user):
     
 def create_chatroom_client(my_user):
     usernames = []
+    chatroom_name = input("Please enter a name for your chatroom: ")
     username = input("Please enter a username that you'd like to add in your chatroom, Write the single character q to quit.")
     while username != "q":
         usernames.append(username)
    # for every username recieved from client input:
    #   add user to list of usernames
    # clientSocket.send(chatroom_name)
-   clientSocket.send(",".join(usernames) + "create_chatroom_client")
+   clientSocket.send(my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client")
    message = clientSocket.recv(1024) 
-   print ('From Server:',message)
+   print ('From Server:', message)
 
-def get_my_chats(my_user):
+def get_my_chats_client(my_user):
   #sent back a list of chatrooms from server, which are displayed in terminal
-  clientSocket.send(my_user.user_id + "," + "get_my_chats")
+  clientSocket.send(my_user.user_id + "," + "get_my_chats_client")
   message = clientSocket.recv(1024)
   print(message)
 
