@@ -11,17 +11,17 @@ clientSocket.connect((serverName,serverPort))
 my_user = structure.User_obj('Funing','456',chats=[]) # need to modify after demo
 my_chat_room = ''
 
-# def add_user_client():
-#    new_user = input("Enter username of the user you want to add to the chat!") #add Leah (lteffera)
-#    clientSocket.send(my_user.user_id + new_user + my_chat_room + 'add_user_client')
-#    message = clientSocket.recv(1024) 
-#    print(('From Server:'), message)
+def add_user_client():
+   new_user = input("Enter username of the user you want to add to the chat!") #add Leah (lteffera)
+   clientSocket.send(my_user.user_id + new_user + my_chat_room + 'add_user_client')
+   message = clientSocket.recv(1024) 
+   print(('From Server:'), message)
 
-# def delete_user_client(): 
-#   user_begone_id = input("Enter user to delete!")
-#   clientSocket.send(my_user.user_id + user_begone_id + my_chat_room + 'delete_user_client')
-#   message = clientSocket.recv(1024) 
-#   print ('From Server:'), message
+def delete_user_client(): 
+  user_begone_id = input("Enter user to delete!")
+  clientSocket.send(my_user.user_id + user_begone_id + my_chat_room + 'delete_user_client')
+  message = clientSocket.recv(1024) 
+  print ('From Server:'), message
 
 def load_chatroom_client(my_user): 
    chatroom_name = input("Please enter a chatroom name: ")
