@@ -4,7 +4,7 @@ from _thread import *
 import threading
 
 serverName = '127.0.0.1'
-serverPort = 12000
+serverPort = 6789
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
