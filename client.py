@@ -47,12 +47,12 @@ def create_chatroom_client(my_user):
    # for every username recieved from client input:
    #   add user to list of usernames
    # clientSocket.send(chatroom_name)
-   clientSocket.send(my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client")
-   message = clientSocket.recv(1024) 
-   print ('From Server:', message)
-   if message == "Chatroom creation successful!":
+    clientSocket.send(my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client")
+    message = clientSocket.recv(1024) 
+    print ('From Server:', message)
+    if message == "Chatroom creation successful!":
        # move client's status to the new chatroom
-       my_chat_room = chatroom_name
+        my_chat_room = chatroom_name
 
 def get_my_chats_client(my_user):
   #sent back a list of chatrooms from server, which are displayed in terminal
