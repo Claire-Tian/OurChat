@@ -108,6 +108,7 @@ def send_message_server(user_id, chatroom_name, content, conn):
                     list_of_connections.get(user.user_id).send(str(m).encode)
                     user.last_pushed_time = datetime.datetime.now()
 
+
 def get_my_chats_server(user_id,conn):
   #Get user_id of client
     userObj = structure.Users.get(user_id,[])
@@ -115,8 +116,22 @@ def get_my_chats_server(user_id,conn):
         conn.send("User doesn't exist in the database")
     chats = userObj.chats
     #Print content of “chats” field for this user in Users hashtable
-    conn.send(str(chats).encode()) # prob. need to beautify
-  
+    conn.send(str(chats).encode()) # TO DO: to beautify
+
+
+def create_chatroom_server(user_id, chat_room_name, other_users,conn):
+    # Check if all userIDs are valid
+    for user in other_users:
+        if user not in structures.Users:
+            conn.send("User {} doesn't exist in our database, please check again.".format(user))
+            return
+    # Create list [thisuserID], append to list al other user IDs entered
+    # Append to Chatnames dictionary “chatroom name: new chat id”
+    
+    # Append to Chats “new_chat_id:{users:[[user_id1, status, last_pushed_time], ... , [user_idn,status, last_pushed_time]], history:[]}”, where all last_pushed_time = now
+    # Add new_chat_id to chats list in Users hash table for all involved users
+    # Add to “history” a message “new chat chat_name created” (i.e. [system, time_stamp, message]), send_message([system, time_stamp, message]))
+ 
 
 def remove_conn(conn_user_id):
     # make status of this user 0 in all its chats
@@ -143,6 +158,9 @@ def threaded(c):
                 elif fctn == "send_message_client":
                     # message body = parsed[1], this chat room = parsed[-2]
                     send_message_server(this_user_id, parsed[-2],parsed[1],c)
+                elif fctn == "get_my_chats_client":
+                    get_my_chats_server(this_user_id,c)
+
     
         #Send response message line into socket
         #c.send(output.encode()) 
