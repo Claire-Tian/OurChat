@@ -11,6 +11,7 @@ class User_obj:
         self.chats = chats
 
 # define object for users in "users" field of Chats hashtable
+# How do we want to format the last pushed time? 
 class Chat_user_obj:
     def __init__(self, user_id = '', status = 0, last_pushed_time = datetime.datetime.now()):
         self.user_id = user_id
@@ -34,6 +35,7 @@ class Message_obj:
 # define system object
 system = User_obj(user_id = 'System', password = 'admin', chats=[])
 # hardcode user objects
+# I thought we were using usernames for unique identifiers?
 user1 = User_obj('Claire','123',chats=[])
 user2 = User_obj('Funing','456',chats=[])
 user3 = User_obj('Leah','789',chats=[])
