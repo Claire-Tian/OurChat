@@ -89,9 +89,15 @@ def send_message_server(user_id, chatroom_name, content, conn):
                     list_of_connections.get(user.user_id).send(str(m).encode)
                     user.last_pushed_time = datetime.datetime.now()
 
-#def get_my_chats:
+def get_my_chats_server(user_id,conn):
   #Get user_id of client
-  #Print content of “chats” field for this user in Users hashtable
+    userObj = structure.Users.get(user_id,[])
+    if not userObj:
+        conn.send("User doesn't exist in the database")
+    chats = userObj.chats
+    #Print content of “chats” field for this user in Users hashtable
+    conn.send(str(chats).encode()) # prob. need to beautify
+  
 
 
 def threaded(c):

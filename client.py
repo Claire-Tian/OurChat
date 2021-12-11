@@ -8,7 +8,7 @@ serverPort = 12000
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
-my_user = structure.User_obj('Funing','456',chats=[])
+my_user = structure.User_obj('Funing','456',chats=[]) # need to modify after demo
 my_chat_room = ''
 #def add_user_client():
 #    sentence = 
@@ -45,8 +45,7 @@ def send_message_client(my_user):
     print(message)
 
     
-
-def create_chatroom_client():
+def create_chatroom_client(my_user):
     usernames = []
     username = input("Please enter a username that you'd like to add in your chatroom, Write the single character q to quit.")
     while username != "q":
@@ -54,6 +53,7 @@ def create_chatroom_client():
    # for every username recieved from client input:
    #   add user to list of usernames
    # clientSocket.send(chatroom_name)
+   clientSocket.send(",".join(usernames) + "create_chatroom_client")
    message = clientSocket.recv(1024) 
    print ('From Server:',message)
 
