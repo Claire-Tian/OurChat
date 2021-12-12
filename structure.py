@@ -32,7 +32,7 @@ class Message_obj:
         self.time_stamp = time_stamp
         self.content = content
     def __str__(self):
-        result = '(' + self.user_id + ') ' + ' ' + self.time_stamp + ': ' + self.content
+        result = '(' + self.user_id + ') ' + ' ' + str(self.time_stamp) + ': ' + self.content
         return result
 
 # define system object

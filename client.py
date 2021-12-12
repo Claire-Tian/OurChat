@@ -5,13 +5,13 @@ import threading
 import sys
 import queue
 
-serverName = '149.130.185.108'
+serverName = '149.130.229.78'
 serverPort = 6789
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
 
-my_user = structure.User_obj('Funing','456',chats=[]) # need to modify after demo, maybe change to a string
+my_user = structure.User_obj('Claire','123') # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 def console(q, lock):
@@ -41,7 +41,7 @@ def load_chatroom_client():
    chatroom_name = input("Please enter a chatroom name: ")
    input_str = my_user.user_id + "," + chatroom_name + "," + "load_chatroom_client"
    clientSocket.send(input_str.encode())
-#   # server side code, returns chatroom
+   # server side code, returns chatroom
    message = clientSocket.recv(1024)
    my_chat_room = chatroom_name 
    print(message)
@@ -98,6 +98,8 @@ while True:
 
     cmd = cmd_queue.get()
     if cmd == 'q':
+        s = my_user.user_id + ", quit"
+        clientSocket.send(s.encode())
         clientSocket.close()
     action = command_dict.get(cmd, "invalid_input")
     if cmd == "invalid_input":
