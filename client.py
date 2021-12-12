@@ -11,7 +11,7 @@ clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
 
-my_user = structure.User_obj('Funing','456',chats=[]) # need to modify after demo, maybe change to a string
+my_user = structure.User_obj('Funing','456') # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 def console(q, lock):
@@ -43,11 +43,14 @@ def load_chatroom_client():
    clientSocket.send(input_str.encode())
 #   # server side code, returns chatroom
    message = clientSocket.recv(1024)
-   my_chat_room = chatroom_name 
+   global my_chat_room
+   my_chat_room = chatroom_name
+   print('chat room name in load_chatroom_client: ',my_chat_room)
    print(message)
 
 def send_message_client(my_user):
     chat_message = input("Please enter your chat message: ")
+    print('chat room name in send message client: ',my_chat_room)
     input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
     clientSocket.send(input_str.encode())
     message = clientSocket.recv(1024)
@@ -84,8 +87,8 @@ def login_client():
 command_dict = {"login":login_client,"add_user_client":add_user_client,"delete_user_client":delete_user_client,
     "load_chatroom_client":load_chatroom_client, "send_message_client":send_message_client,"create_chatroom_client":create_chatroom_client}
 print("Welcome to OurChat, an interactive messaging system on your command line!")
-print("Available commands are: \n To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n"+
-"To add a user: type add_user_client; to delete a user: type delete_user_client")
+print("Available commands are: \n To load a chatroom: type load_chatroom_client; \n To send a message: type send_message_client; \n To create a chatroom: type create_chatroom_client \n"+
+"To add a user: type add_user_client; \n to delete a user: type delete_user_client\n")
 print("To continue, please enter one of the following commands below, type q to quit. \n")
 cmd_queue = queue.Queue()
 stdout_lock = threading.Lock()
@@ -102,6 +105,7 @@ while True:
     cmd = cmd_queue.get()
     if cmd == 'q':
         clientSocket.close()
+        break
     action = command_dict.get(cmd, "invalid_input")
     if cmd == "invalid_input":
         print("Invalid input, please try again")
