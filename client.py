@@ -41,6 +41,7 @@ def load_chatroom_client():
    chatroom_name = input("Please enter a chatroom name: ")
    input_str = my_user.user_id + "," + chatroom_name + "," + "load_chatroom_client"
    clientSocket.send(input_str.encode())
+   print('chat room name in load_chat_room_client before recv: ',my_chat_room)
 #   # server side code, returns chatroom
    message = clientSocket.recv(1024)
    global my_chat_room
@@ -125,7 +126,7 @@ while True:
 
 
     
-    #action(stdout_lock)
+    action(stdout_lock)
 
 
 clientSocket.close()
