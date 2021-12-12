@@ -107,6 +107,7 @@ def send_message_server(user_id, chatroom_name, content, conn):
             for user in this_chat_obj.chat_users:
                 if user.status == 1:
                     user_time = user.last_pushed_time
+                    print("in for loop")
                     # get messages after user's last_pushed_time
                     m = []
                     for msg in this_chat_obj.chat_history:
@@ -161,7 +162,7 @@ def create_chatroom_server(user_id, chat_room_name, other_users,conn):
 def remove_conn(conn_user_id):
     # make status of this user 0 in all its chats
     if conn_user_id in list_of_connections:
-        list_of_connections.Remove(conn_user_id)
+        list_of_connections.pop(conn_user_id)
         this_user_chats = structure.Users.get(conn_user_id).chats
         for c_id in this_user_chats:
             for user in structure.Chats.get(c_id).chat_users:
@@ -171,8 +172,8 @@ def remove_conn(conn_user_id):
 def threaded(c):
     this_user_id = ''
     print("in threaded")
-    try:
-        while True:
+    while True:
+        try:
             message = c.recv(1024).decode()
             print(message)
             if message:
@@ -191,7 +192,7 @@ def threaded(c):
                     elif fctn == "get_my_chats_client":
                         get_my_chats_server(this_user_id,c)
                     elif fctn == "quit":
-                        break
+                        c.close()
 
     
         #Send response message line into socket
@@ -199,16 +200,16 @@ def threaded(c):
         #Send the content of the requested file to the client
         #for i in range(0, len(outputdata)):
             #c.send(outputdata[i].encode())
-        else:
-            # message may have no content if connection is broken
-            # make status of this user 0 in all its chats
+            else:
+                # message may have no content if connection is broken
+                # make status of this user 0 in all its chats
+                remove_conn(this_user_id)
+                c.close()
+        except IOError:
+            #c.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
+            #c.send(str.encode("<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n","UTF-8"))
+            c.close()
             remove_conn(this_user_id)
-        c.close()
-    except IOError:
-        #c.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
-        #c.send(str.encode("<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n","UTF-8"))
-        c.close()
-        remove_conn(this_user_id)
 
 
 while True:
