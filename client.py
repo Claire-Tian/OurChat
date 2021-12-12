@@ -5,7 +5,7 @@ import threading
 import sys
 import queue
 
-serverName = '149.130.185.108'
+serverName = '149.130.229.78'
 serverPort = 6789
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
@@ -32,7 +32,7 @@ def add_user_client():
 
 def delete_user_client(): 
   user_begone_id = input("Enter user to delete!")
-  clientSocket.send(my_user.user_id + user_begone_id + my_chat_room + 'delete_user_client')
+  clientSocket.send()
   message = clientSocket.recv(1024) 
   print ('From Server:'), message
 
@@ -48,9 +48,10 @@ def load_chatroom_client():
 
 def send_message_client(my_user):
     chat_message = input("Please enter your chat message: ")
-    clientSocket.send(my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client")
+    input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
+    clientSocket.send(input_str.encode())
     message = clientSocket.recv(1024)
-    print(message)
+    print(message.decode())
 
     
 def create_chatroom_client(my_user):
@@ -62,7 +63,8 @@ def create_chatroom_client(my_user):
    # for every username recieved from client input:
    #   add user to list of usernames
    # clientSocket.send(chatroom_name)
-    clientSocket.send(my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client")
+    input_str = my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client"
+    clientSocket.send(input_str.encode())
     message = clientSocket.recv(1024) 
     print ('From Server:', message)
     if message == "Chatroom creation successful!":
@@ -71,7 +73,8 @@ def create_chatroom_client(my_user):
 
 def get_my_chats_client(my_user):
   #sent back a list of chatrooms from server, which are displayed in terminal
-  clientSocket.send(my_user.user_id + "," + "get_my_chats_client")
+  input_str = my_user.user_id + "," + "get_my_chats_client"
+  clientSocket.send(input_str.encode())
   message = clientSocket.recv(1024)
   print(message)
 
@@ -102,8 +105,8 @@ while True:
     action = command_dict.get(cmd, "invalid_input")
     if cmd == "invalid_input":
         print("Invalid input, please try again")
-        print("Available commands are: \n To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n"+
-    "To add a user: type add_user_client; to delete a user: type delete_user_client \n")
+        print("Available commands are: \n To load a chatroom: type load_chatroom_client; \n To send a message: type send_message_client; \n To create a chatroom: type create_chatroom_client \n"+
+    "To add a user: type add_user_client; \n to delete a user: type delete_user_client \n")
     elif cmd == "add_user_client":
         action()
     elif cmd == "delete_user_client":
@@ -118,7 +121,7 @@ while True:
 
 
     
-    action(stdout_lock)
+    #action(stdout_lock)
 
 
 clientSocket.close()

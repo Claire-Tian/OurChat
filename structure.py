@@ -45,14 +45,14 @@ Chat_user2 = Chat_user_obj('Funing')
 Chat_user3 = Chat_user_obj('Leah')
 system_hello = Message_obj('System',content='Welcome to Our Chat!')
 system_broadcast = Chatroom_obj(0,[Chat_user1,Chat_user2,Chat_user3],[system_hello])
-system.chats = system.chats.append(system_broadcast.chat_id)
+system.chats.append(system_broadcast.chat_id)
 # define demo user chat (1&2)
 demo_user1 = Chat_user_obj('Claire')
 demo_user2 = Chat_user_obj('Funing')
 demo_chat = Chatroom_obj(1,[demo_user1,demo_user2])
-user1.chats = user1.chats.append(demo_chat.chat_id)
-user2.chats = user2.chats.append(demo_chat.chat_id)
+user1.chats.append(demo_chat.chat_id)
+user2.chats.append(demo_chat.chat_id)
 # define databases
 Users = {system.user_id: system, user1.user_id: user1, user2.user_id: user1, user3.user_id: user1}
 Chats = {system_broadcast.chat_id:system_broadcast, demo_chat.chat_id:demo_chat} # format: {Chatroom_obj.chat_id: Chatroom_obj}
-Chatnames = {'System':0, 'Claire,Funing':1} # format: {chatname: chat_id}
+Chatnames = {'System':0, 'Claire Funing':1} # format: {chatname: chat_id}
