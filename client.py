@@ -13,19 +13,19 @@ clientSocket.connect((serverName,serverPort))
 my_user = structure.User_obj('Funing','456',chats=[]) # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
-def user_login_client():
-   #maybe use a while loop? while loggedin = false,
-   logged_in = False
-   while logged_in == False:
-      username,password = ("To log in, please enter your username,password").split(",")
-      clientSocket.send(username + "," + password + "," + "user_login_client")
-      message = clientSocket.recv(1024)
-      print(('From Server:'), message) #depending on message, toggle loggedin to be true
-      if message == "match": 
-         logged_in = True
-      elif message == "nomatch": 
-         print("Sorry, looks like you aren't in the system.")
-         break
+# def user_login_client():
+#    #maybe use a while loop? while loggedin = false,
+#    logged_in = False
+#    while logged_in == False:
+#       username,password = ("To log in, please enter your username,password").split(",")
+#       clientSocket.send(username + "," + password + "," + "user_login_client")
+#       message = clientSocket.recv(1024)
+#       print(('From Server:'), message) #depending on message, toggle loggedin to be true
+#       if message == "match": 
+#          logged_in = True
+#       elif message == "nomatch": 
+#          print("Sorry, looks like you aren't in the system.")
+#          break
 
 def add_user_client(my_user):
    new_user = input("Enter username of the user you want to add to the chat!") #add Leah (lteffera)
@@ -37,7 +37,7 @@ def delete_user_client(my_user):
   user_begone_id = input("Enter user to delete!")
   clientSocket.send(my_user.user_id + "," + user_begone_id + "," + my_chat_room + "," + 'delete_user_client')
   message = clientSocket.recv(1024) 
-  print ('From Server:'), message
+  print(('From Server:'), message)
 
 def load_chatroom_client(my_user): 
    chatroom_name = input("Please enter a chatroom name: ")

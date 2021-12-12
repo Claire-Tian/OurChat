@@ -12,18 +12,18 @@ serverSocket.bind((serverHost,serverPort))
 serverSocket.listen(1) 
 list_of_connections = {}
 
-def user_login_server(username,password,conn): 
-    userObjList = structure.Users.values()
-    for userObj in userObjList: 
-        if (userObj.user_id == username) and (userObj.password == password):
-            conn.send("match")
-        else:
-            conn.send("nomatch")
+# def user_login_server(username,password,conn): 
+#     userObjList = structure.Users.values()
+#     for userObj in userObjList: 
+#         if (userObj.user_id == username) and (userObj.password == password):
+#             conn.send("match")
+#         else:
+#             conn.send("nomatch")
 def add_user_server(user_id, new_user_id, chatroom_name, conn): 
-  
-  #hard-coded version 
+    # 2 people private chat 
+    # 3rd person – create a new chatroom 
   chatid = structure.Chatnames.get(chatroom_name)
-  currentUserObj = structure.Users.get(user_id)
+  this_user_obj = structure.Users.get(new_user_id)
   if chatid == None:
     conn.send("Chatroom does not exist.".encode())  
   this_chat_obj = structure.Chats.get(chatid)
@@ -31,38 +31,45 @@ def add_user_server(user_id, new_user_id, chatroom_name, conn):
   if new_user_id in this_chat_obj.chat_users:  
     conn.send("User is already in chat".encode())
   else: 
-    this_chat_obj.chat_users.append(new_user_id) #how to add globally? 
+    this_chat_obj.chat_users.append(new_user_id) #I'm not sure if this updates the chat's list globally.
     message = ("Added new user {uid} to the chat").format(uid = new_user_id)
-    structure.Chat_user3.last_pushed_time = datetime.datetime.now()  
-    #add chat_id to user's list of chats
-    structure.Chat_user3.chats.append(chatid)
+    # updates the newly added user's last pushed time 
+    this_chat_obj.chat_users[-1].last_pushed_time = datetime.datetime.now() 
+    # structure.Chat_user3.last_pushed_time = datetime.datetime.now()  
+    
+    #add the new chat id to the new user's list of chats
+    # structure.Chat_user3.chats.append(chatid)
+    
+    # update the user's chat list with the chat id
+    this_user_obj.chats.append(chatid)
+
      #send confirmation message back to the client 
     conn.send(message.encode()) 
-     #send_message("wendy added to the chatroom")
 
-    # send_message_server(user_id, chatroom_name, message, conn)
+    #push confirmation message to all users in the chatroom
+    send_message_server(new_user_id, chatroom_name, message,conn)
     #when a new user is added to a chat, update chat's name? 
 
-def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
-  if user_begone_id in structure.demo_chat.chat_users: #replace with current_chat later
-    chatid = structure.Chatnames.get(chatroom_name)
-    # Delete the user sublist in the users dict (in the chat hash table)
-    structure.demo_chat.chat_users.remove(structure.Chat_user_obj('Leah')) #probably a better way to do this
-       # Remove the chat id from the user’s list of chats (in the user table)
-    structure.Chat_user3.chats.remove(chatid)
-    #check # of users
-    if len(structure.demo_chat.chat_users) == 0: 
-      # since there are no users in the chat, we don't need to remove chatid from users list of chats
-      structure.Chatnames.remove(chatroom_name)
-      # remove the chat from the chatroom dict
-      structure.Chats.pop(structure.demo_chat.chat_id) 
-      # client send_message("User, you are not in this chat anymore")
-      message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
-      conn.send(message.encode())
-      # send confirmation message back to client. 
-    #   send_message_server(user_id, chatroom_name,message,conn)
-  else: 
-    conn.send("User is not in chat.".encode())
+# def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
+#   if user_begone_id in structure.demo_chat.chat_users: #replace with current_chat later
+#     chatid = structure.Chatnames.get(chatroom_name)
+#     # Delete the user sublist in the users dict (in the chat hash table)
+#     structure.demo_chat.chat_users.remove(structure.Chat_user_obj('Leah')) #probably a better way to do this
+#        # Remove the chat id from the user’s list of chats (in the user table)
+#     structure.Chat_user3.chats.remove(chatid)
+#     #check # of users
+#     if len(structure.demo_chat.chat_users) == 0: 
+#       # since there are no users in the chat, we don't need to remove chatid from users list of chats
+#       structure.Chatnames.remove(chatroom_name)
+#       # remove the chat from the chatroom dict
+#       structure.Chats.pop(structure.demo_chat.chat_id) 
+#       # client send_message("User, you are not in this chat anymore")
+#       message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
+#       conn.send(message.encode())
+#       # send confirmation message back to client. 
+#     #   send_message_server(user_id, chatroom_name,message,conn)
+#   else: 
+#     conn.send("User is not in chat.".encode())
 
 def load_chatroom_server(user_id, chatroom_name, conn):
   #get corresponding chat_id from chat_name in Chatnames dictionary
@@ -184,11 +191,11 @@ def threaded(c):
                 elif fctn == "add_user_client": 
                     #user_id = parsed[0], new username = parsed[1], chatroom id = parsed[2], 
                     add_user_server(parsed[0],parsed[1],parsed[2],c)
-                elif fctn == "delete_user_client": 
-                    #user_id = parsed[0], user id to delete = parsed[1], chatroom id = parsed[2]
-                    delete_user_server(parsed[0],parsed[1],parsed[-2])
-                elif fctn == "user_login_client":
-                    user_login_server(parsed[0],parsed[1],c)
+                # elif fctn == "delete_user_client": 
+                #     #user_id = parsed[0], user id to delete = parsed[1], chatroom id = parsed[2]
+                #     delete_user_server(parsed[0],parsed[1],parsed[-2])
+                # elif fctn == "user_login_client":
+                #     user_login_server(parsed[0],parsed[1],c)
     
         #Send response message line into socket
         #c.send(output.encode()) 
