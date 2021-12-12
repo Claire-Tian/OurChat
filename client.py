@@ -11,7 +11,7 @@ clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
 
-my_user = structure.User_obj('Claire','123') # need to modify after demo, maybe change to a string
+my_user = structure.User_obj('Funing','456') # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 def console(q, lock):
@@ -32,7 +32,7 @@ def add_user_client():
 
 def delete_user_client(): 
   user_begone_id = input("Enter user to delete!")
-  clientSocket.send(my_user.user_id + user_begone_id + my_chat_room + 'delete_user_client')
+  clientSocket.send()
   message = clientSocket.recv(1024) 
   print ('From Server:'), message
 
@@ -41,16 +41,21 @@ def load_chatroom_client():
    chatroom_name = input("Please enter a chatroom name: ")
    input_str = my_user.user_id + "," + chatroom_name + "," + "load_chatroom_client"
    clientSocket.send(input_str.encode())
-   # server side code, returns chatroom
+   print('chat room name in load_chat_room_client before recv: ',my_chat_room)
+#   # server side code, returns chatroom
    message = clientSocket.recv(1024)
-   my_chat_room = chatroom_name 
+   global my_chat_room
+   my_chat_room = chatroom_name
+   print('chat room name in load_chatroom_client: ',my_chat_room)
    print(message)
 
 def send_message_client(my_user):
     chat_message = input("Please enter your chat message: ")
-    clientSocket.send(my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client")
+    print('chat room name in send message client: ',my_chat_room)
+    input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
+    clientSocket.send(input_str.encode())
     message = clientSocket.recv(1024)
-    print(message)
+    print(message.decode())
 
     
 def create_chatroom_client(my_user):
@@ -62,7 +67,8 @@ def create_chatroom_client(my_user):
    # for every username recieved from client input:
    #   add user to list of usernames
    # clientSocket.send(chatroom_name)
-    clientSocket.send(my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client")
+    input_str = my_user.user_id + "," + chatroom_name + "," + ",".join(usernames) + "," + "create_chatroom_client"
+    clientSocket.send(input_str.encode())
     message = clientSocket.recv(1024) 
     print ('From Server:', message)
     if message == "Chatroom creation successful!":
@@ -71,7 +77,8 @@ def create_chatroom_client(my_user):
 
 def get_my_chats_client(my_user):
   #sent back a list of chatrooms from server, which are displayed in terminal
-  clientSocket.send(my_user.user_id + "," + "get_my_chats_client")
+  input_str = my_user.user_id + "," + "get_my_chats_client"
+  clientSocket.send(input_str.encode())
   message = clientSocket.recv(1024)
   print(message)
 
@@ -81,8 +88,8 @@ def login_client():
 command_dict = {"login":login_client,"add_user_client":add_user_client,"delete_user_client":delete_user_client,
     "load_chatroom_client":load_chatroom_client, "send_message_client":send_message_client,"create_chatroom_client":create_chatroom_client}
 print("Welcome to OurChat, an interactive messaging system on your command line!")
-print("Available commands are: \n To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n"+
-"To add a user: type add_user_client; to delete a user: type delete_user_client")
+print("Available commands are: \n To load a chatroom: type load_chatroom_client; \n To send a message: type send_message_client; \n To create a chatroom: type create_chatroom_client \n"+
+"To add a user: type add_user_client; \n to delete a user: type delete_user_client\n")
 print("To continue, please enter one of the following commands below, type q to quit. \n")
 cmd_queue = queue.Queue()
 stdout_lock = threading.Lock()
@@ -101,11 +108,12 @@ while True:
         s = my_user.user_id + ", quit"
         clientSocket.send(s.encode())
         clientSocket.close()
+        break
     action = command_dict.get(cmd, "invalid_input")
     if cmd == "invalid_input":
         print("Invalid input, please try again")
-        print("Available commands are: \n To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n"+
-    "To add a user: type add_user_client; to delete a user: type delete_user_client \n")
+        print("Available commands are: \n To load a chatroom: type load_chatroom_client; \n To send a message: type send_message_client; \n To create a chatroom: type create_chatroom_client \n"+
+    "To add a user: type add_user_client; \n to delete a user: type delete_user_client \n")
     elif cmd == "add_user_client":
         action()
     elif cmd == "delete_user_client":
