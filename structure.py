@@ -5,10 +5,10 @@ import datetime
 
 # define user object used in Users hashtable, global context
 class User_obj:
-    def __init__(self, user_id = '', password = '', chats = []):
+    def __init__(self, user_id = '', password = ''):
         self.user_id = user_id
         self.password = password
-        self.chats = chats
+        self.chats = []
 
 # define object for users in "users" field of Chats hashtable
 # local to each chatroom
@@ -20,7 +20,7 @@ class Chat_user_obj:
 
 # define object for chats in Chats hashtable
 class Chatroom_obj:
-    def __init__(self, chat_id, chat_users = [], chat_history = []):
+    def __init__(self, chat_id, chat_users=[], chat_history=[]):
         self.chat_id = chat_id
         self.chat_users = chat_users # a list of chat_user_obj
         self.chat_history = chat_history # a list of Message_obj
@@ -31,14 +31,17 @@ class Message_obj:
         self.user_id = user_id
         self.time_stamp = time_stamp
         self.content = content
+    def __str__(self):
+        result = '(' + self.user_id + ') ' + ' ' + self.time_stamp + ': ' + self.content
+        return result
 
 # define system object
-system = User_obj(user_id = 'System', password = 'admin', chats=[])
+system = User_obj(user_id = 'System', password = 'admin')
 # hardcode user objects
 # I thought we were using usernames for unique identifiers?
-user1 = User_obj('Claire','123',chats=[])
-user2 = User_obj('Funing','456',chats=[])
-user3 = User_obj('Leah','789',chats=[])
+user1 = User_obj('Claire','123')
+user2 = User_obj('Funing','456')
+user3 = User_obj('Leah','789')
 # define system chat
 Chat_user1 = Chat_user_obj('Claire')
 Chat_user2 = Chat_user_obj('Funing')
@@ -46,6 +49,8 @@ Chat_user3 = Chat_user_obj('Leah')
 system_hello = Message_obj('System',content='Welcome to Our Chat!')
 system_broadcast = Chatroom_obj(0,[Chat_user1,Chat_user2,Chat_user3],[system_hello])
 system.chats.append(system_broadcast.chat_id)
+user1.chats.append(system_broadcast.chat_id)
+user2.chats.append(system_broadcast.chat_id)
 # define demo user chat (1&2)
 demo_user1 = Chat_user_obj('Claire')
 demo_user2 = Chat_user_obj('Funing')
