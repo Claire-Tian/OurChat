@@ -11,7 +11,7 @@ clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
 
-my_user = structure.User_obj('Funing','456') # need to modify after demo, maybe change to a string
+my_user = structure.User_obj('Claire','123') # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 '''def listen_for_messages():
