@@ -36,6 +36,14 @@ def console(q):
         if cmd == 'q':
             break
 
+def receive_msg():
+    while True:
+        try:
+            msg = clientSocket.recv(1024).decode()
+            print(msg)
+        except Exception as err:
+            return err
+
 def add_user_client():
    new_user = input("Enter username of the user you want to add to the chat!") #add Leah (lteffera)
    clientSocket.send(my_user.user_id + new_user + my_chat_room + 'add_user_client')
@@ -122,7 +130,8 @@ print("To continue, please enter one of the following commands below, type q to 
 #stdout_lock = threading.Lock()
 #dj = threading.Thread(target=console, args=(cmd_queue, ))
 #dj.start()
-
+receive_thread = threading.Thread(target=receive_msg)
+receive_thread.start()
 while True:
     
     #print("To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n")
@@ -151,8 +160,9 @@ while True:
         #print("in while loop")
         action()
     elif cmd == "send_message_client":
-        new_thread = threading.Thread(target=action(my_user))
-        new_thread.start()
+        action(my_user)
+        #new_thread = threading.Thread(target=action(my_user))
+        #new_thread.start()
         #boolean = action(my_user)
         #while True:
             #boolean = action(my_user)
