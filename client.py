@@ -5,13 +5,13 @@ import threading
 import sys
 import queue
 
-serverName = '149.130.229.78'
+serverName = '149.130.216.84'
 serverPort = 6789
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
 
-my_user = structure.User_obj('Funing','456') # need to modify after demo, maybe change to a string
+my_user = structure.User_obj('Claire','123') # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 '''def listen_for_messages():
@@ -65,14 +65,16 @@ def send_message_client(my_user):
     chat_message = input("Please enter your chat message: ")
     #if chat_message == 'q':
     #    return False
-    print('chat room name in send message client: ',my_chat_room)
-    input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
-    print('send_message_client input str ',input_str)
-    clientSocket.send(input_str.encode())
-    print('sending chat_message to the server: ',chat_message)
-    message = clientSocket.recv(1024)
-    print(message.decode())
-    #return True
+    while chat_message != 'q':
+      print('chat room name in send message client: ',my_chat_room)
+      input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
+      print('send_message_client input str ',input_str)
+      clientSocket.send(input_str.encode())
+      print('sending chat_message to the server: ',chat_message)
+      message = clientSocket.recv(1024)
+      print(message.decode())
+      chat_message = input("Please enter your chat message: ")
+      #return True
 
     
 def create_chatroom_client(my_user):

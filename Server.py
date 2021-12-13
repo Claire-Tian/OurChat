@@ -90,7 +90,7 @@ def send_message_server(user_id, chatroom_name, content, conn):
     print(user_id)
     chatid = structure.Chatnames.get(chatroom_name)
     print(chatroom_name)
-    print(structure.Chatnames)
+    #print(structure.Chatnames)
     print(chatid)
     if chatroom_name == '':
         conn.send(b"You are not in any chatroom.")
@@ -105,14 +105,17 @@ def send_message_server(user_id, chatroom_name, content, conn):
             # Push all unread messages to all active users in the chat, change their last_pushed_time to now
             print(this_chat_obj.chat_history)
             for user in this_chat_obj.chat_users:
+                print(user.user_id)
+                print(user.status)
                 if user.status == 1:
                     user_time = user.last_pushed_time
                     print("in for loop")
                     # get messages after user's last_pushed_time
                     m = []
                     for msg in this_chat_obj.chat_history:
+                        print(str(msg))
                         if msg.time_stamp > user_time:
-                            m.append(str(msg))
+                            m.append(str(msg) + "\n")
                     print(m)
                     conn_i = list_of_connections.get(user.user_id)
                     to_send = str(m)
