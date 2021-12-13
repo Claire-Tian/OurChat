@@ -103,7 +103,7 @@ def send_message_server(user_id, chatroom_name, content, conn):
             # Add “client_id, time_stamp = now, message” to history field in chat_id
             this_chat_obj.chat_history.append(structure.Message_obj(user_id,datetime.datetime.now(),content))
             # Push all unread messages to all active users in the chat, change their last_pushed_time to now
-            print(this_chat_obj.chat_history)
+            #print(this_chat_obj.chat_history)
             for user in this_chat_obj.chat_users:
                 print(user.user_id)
                 print(user.status)
