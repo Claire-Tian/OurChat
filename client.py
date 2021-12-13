@@ -66,15 +66,16 @@ def send_message_client(my_user):
     #if chat_message == 'q':
     #    return False
     while chat_message != 'q':
-      print('chat room name in send message client: ',my_chat_room)
-      input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
-      print('send_message_client input str ',input_str)
-      clientSocket.send(input_str.encode())
-      print('sending chat_message to the server: ',chat_message)
-      message = clientSocket.recv(1024)
-      print(message.decode())
-      chat_message = input("Please enter your chat message: ")
-      #return True
+        print('chat room name in send message client: ',my_chat_room)
+        input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
+        print('send_message_client input str ',input_str)
+        clientSocket.send(input_str.encode())
+        print('sending chat_message to the server: ',chat_message)
+        message = clientSocket.recv(1024)
+        chat_message = input("Please enter your chat message: ")
+        print(message.decode())
+    
+    #return True
 
     
 def create_chatroom_client(my_user):
