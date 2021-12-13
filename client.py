@@ -11,7 +11,7 @@ clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
 
-my_user = structure.User_obj('Claire','123') # need to modify after demo, maybe change to a string
+my_user = structure.User_obj('Funing','456') # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 '''def listen_for_messages():
@@ -65,7 +65,7 @@ def send_message_client(my_user):
     chat_message = input("Please enter your chat message: ")
     #if chat_message == 'q':
     #    return False
-    while chat_message != 'q':
+    '''while chat_message != 'q':
         print('chat room name in send message client: ',my_chat_room)
         input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
         print('send_message_client input str ',input_str)
@@ -73,7 +73,14 @@ def send_message_client(my_user):
         print('sending chat_message to the server: ',chat_message)
         message = clientSocket.recv(1024)
         chat_message = input("Please enter your chat message: ")
-        print(message.decode())
+        print(message.decode())'''
+    input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
+    print('send_message_client input str ',input_str)
+    clientSocket.send(input_str.encode())
+    print('sending chat_message to the server: ',chat_message)
+    message = clientSocket.recv(1024)
+    
+    print(message.decode())
     
     #return True
 
@@ -144,7 +151,8 @@ while True:
         #print("in while loop")
         action()
     elif cmd == "send_message_client":
-        action(my_user)
+        new_thread = threading.Thread(target=action(my_user))
+        new_thread.start()
         #boolean = action(my_user)
         #while True:
             #boolean = action(my_user)
