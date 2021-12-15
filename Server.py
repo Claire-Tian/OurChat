@@ -104,7 +104,7 @@ def send_message_server(user_id, chatroom_name, content, conn):
     print(user_id)
     chatid = structure.Chatnames.get(chatroom_name)
     print(chatroom_name)
-    print(structure.Chatnames)
+    #print(structure.Chatnames)
     print(chatid)
     if chatroom_name == '':
         conn.send(b"You are not in any chatroom.")
@@ -117,15 +117,19 @@ def send_message_server(user_id, chatroom_name, content, conn):
             # Add “client_id, time_stamp = now, message” to history field in chat_id
             this_chat_obj.chat_history.append(structure.Message_obj(user_id,datetime.datetime.now(),content))
             # Push all unread messages to all active users in the chat, change their last_pushed_time to now
-            print(this_chat_obj.chat_history)
+            #print(this_chat_obj.chat_history)
             for user in this_chat_obj.chat_users:
+                print(user.user_id)
+                print(user.status)
                 if user.status == 1:
                     user_time = user.last_pushed_time
+                    print("in for loop")
                     # get messages after user's last_pushed_time
                     m = []
                     for msg in this_chat_obj.chat_history:
+                        print(str(msg))
                         if msg.time_stamp > user_time:
-                            m.append(str(msg))
+                            m.append(str(msg) + "\n")
                     print(m)
                     conn_i = list_of_connections.get(user.user_id)
                     to_send = str(m)
@@ -175,7 +179,7 @@ def create_chatroom_server(user_id, chat_room_name, other_users,conn):
 def remove_conn(conn_user_id):
     # make status of this user 0 in all its chats
     if conn_user_id in list_of_connections:
-        list_of_connections.Remove(conn_user_id)
+        list_of_connections.pop(conn_user_id)
         this_user_chats = structure.Users.get(conn_user_id).chats
         for c_id in this_user_chats:
             for user in structure.Chats.get(c_id).chat_users:
@@ -185,8 +189,8 @@ def remove_conn(conn_user_id):
 def threaded(c):
     this_user_id = ''
     print("in threaded")
-    try:
-        while True:
+    while True:
+        try:
             message = c.recv(1024).decode()
             print(message)
             if message:
@@ -205,7 +209,7 @@ def threaded(c):
                     elif fctn == "get_my_chats_client":
                         get_my_chats_server(this_user_id,c)
                     elif fctn == "quit":
-                        break
+                        c.close()
 
     
         #Send response message line into socket
@@ -213,16 +217,16 @@ def threaded(c):
         #Send the content of the requested file to the client
         #for i in range(0, len(outputdata)):
             #c.send(outputdata[i].encode())
-        else:
-            # message may have no content if connection is broken
-            # make status of this user 0 in all its chats
+            else:
+                # message may have no content if connection is broken
+                # make status of this user 0 in all its chats
+                remove_conn(this_user_id)
+                c.close()
+        except IOError:
+            #c.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
+            #c.send(str.encode("<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n","UTF-8"))
+            c.close()
             remove_conn(this_user_id)
-        c.close()
-    except IOError:
-        #c.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
-        #c.send(str.encode("<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n","UTF-8"))
-        c.close()
-        remove_conn(this_user_id)
 
 
 while True:
