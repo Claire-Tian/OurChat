@@ -7,7 +7,7 @@ import datetime
 serverSocket = socket(AF_INET, SOCK_STREAM)
 # Prepare a server socket
 serverHost = ''
-serverPort = 6789
+serverPort = 6795
 serverSocket.bind((serverHost,serverPort)) 
 serverSocket.listen(1) 
 list_of_connections = {}
@@ -31,10 +31,12 @@ def add_user_server(user_id, new_user_id, chatroom_name, conn):
   if new_user_id in this_chat_obj.chat_users:  
     conn.send("User is already in chat".encode())
   else: 
-    this_chat_obj.chat_users.append(new_user_id) #I'm not sure if this updates the chat's list globally.
+    new_user_obj = structure.Chat_user_obj(new_user_id,datetime.datetime.now())
+    this_chat_obj.chat_users.append(new_user_obj)  
     message = ("Added new user {uid} to the chat").format(uid = new_user_id)
+    
     # updates the newly added user's last pushed time 
-    this_chat_obj.chat_users[-1].last_pushed_time = datetime.datetime.now() 
+    # this_chat_obj.chat_users[-1].last_pushed_time = datetime.datetime.now() 
     # structure.Chat_user3.last_pushed_time = datetime.datetime.now()  
     
     #add the new chat id to the new user's list of chats
@@ -51,13 +53,17 @@ def add_user_server(user_id, new_user_id, chatroom_name, conn):
     #when a new user is added to a chat, update chat's name? 
 
 # def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
-#   if user_begone_id in structure.demo_chat.chat_users: #replace with current_chat later
-#     chatid = structure.Chatnames.get(chatroom_name)
+#   chatid = structure.Chatnames.get(chatroom_name)
+#   this_chat_obj = structure.Chats.get(chatid)
+#   begone_user_obj = structure.Users.get(user_begone_id)
+  
+#   if structure.Chat_user_obj(user_begone_id) in this_chat_obj.chat_users: #   if user_begone_id in structure.demo_chat.chat_users: #replace with current_chat later
 #     # Delete the user sublist in the users dict (in the chat hash table)
-#     structure.demo_chat.chat_users.remove(structure.Chat_user_obj('Leah')) #probably a better way to do this
-#        # Remove the chat id from the user’s list of chats (in the user table)
+#     structure.demo_chat.chat_users.remove(structure.Chat_user_obj(user_begone_id)) #probably a better way to do this
+#     # this_chat_obj.chat_users.remove(begone_user_obj) #remove user object
+#     # Remove the chat id from the user’s list of chats (in the user table)
 #     structure.Chat_user3.chats.remove(chatid)
-#     #check # of users
+#     #check number of users
 #     if len(structure.demo_chat.chat_users) == 0: 
 #       # since there are no users in the chat, we don't need to remove chatid from users list of chats
 #       structure.Chatnames.remove(chatroom_name)
@@ -67,7 +73,7 @@ def add_user_server(user_id, new_user_id, chatroom_name, conn):
 #       message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
 #       conn.send(message.encode())
 #       # send confirmation message back to client. 
-#     #   send_message_server(user_id, chatroom_name,message,conn)
+#       send_message_server(user_id, chatroom_name,message,conn)
 #   else: 
 #     conn.send("User is not in chat.".encode())
 

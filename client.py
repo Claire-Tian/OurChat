@@ -5,8 +5,8 @@ import threading
 import sys
 import queue
 
-serverName = '149.130.216.84'
-serverPort = 6789
+serverName = '10.60.0.116'
+serverPort = 6795
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
@@ -71,9 +71,9 @@ def load_chatroom_client():
 
 def send_message_client(my_user):
     chat_message = input("Please enter your chat message: ")
-    #if chat_message == 'q':
-    #    return False
-    '''while chat_message != 'q':
+    if chat_message == 'q':
+       return False
+    while chat_message != 'q':
         print('chat room name in send message client: ',my_chat_room)
         input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
         print('send_message_client input str ',input_str)
@@ -81,7 +81,8 @@ def send_message_client(my_user):
         print('sending chat_message to the server: ',chat_message)
         message = clientSocket.recv(1024)
         chat_message = input("Please enter your chat message: ")
-        print(message.decode())'''
+        print(message.decode())
+
     input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
     print('send_message_client input str ',input_str)
     clientSocket.send(input_str.encode())
@@ -126,16 +127,16 @@ print("Welcome to OurChat, an interactive messaging system on your command line!
 print("Available commands are: \n To load a chatroom: type load_chatroom_client; \n To send a message: type send_message_client; \n To create a chatroom: type create_chatroom_client \n"+
 "To add a user: type add_user_client; \n to delete a user: type delete_user_client\n")
 print("To continue, please enter one of the following commands below, type q to quit. \n")
-#cmd_queue = queue.Queue()
-#stdout_lock = threading.Lock()
-#dj = threading.Thread(target=console, args=(cmd_queue, ))
-#dj.start()
+cmd_queue = queue.Queue()
+stdout_lock = threading.Lock()
+dj = threading.Thread(target=console, args=(cmd_queue, ))
+dj.start()
 receive_thread = threading.Thread(target=receive_msg)
 receive_thread.start()
 while True:
     
-    #print("To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n")
-    #print("To add a user: type add_user_client; to delete a user: type delete_user_client")
+    print("To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n")
+    print("To add a user: type add_user_client; to delete a user: type delete_user_client")
     
     #user_input = input("To continue, please enter one of the following commands below, type q to quit. \n")
     
