@@ -1,4 +1,3 @@
-#Users = {user_id1:{chats:[chat_id1, chat_id2, …, chat_idn], status: 0/1 (active/inactive), password: pw_string}}
 #Chats = {chat_id1:{users:[[user_id1, status, last_pushed_time], ... , [user_idn,status, last_pushed_time]], history:[[user_id, time_stamp, content_string], [user_id, time_stamp, content_string]]}, chat_id2:{...}}
 #Chatnames = [chat_name: chat_id, chat_name2: chat_id2]
 import datetime
@@ -58,6 +57,6 @@ demo_chat = Chatroom_obj(1,[demo_user1,demo_user2])
 user1.chats.append(demo_chat.chat_id)
 user2.chats.append(demo_chat.chat_id)
 # define databases
-Users = {system.user_id: system, user1.user_id: user1, user2.user_id: user1, user3.user_id: user1}
+Users = {system.user_id: system, user1.user_id: user1, user2.user_id: user2, user3.user_id: user3}
 Chats = {system_broadcast.chat_id:system_broadcast, demo_chat.chat_id:demo_chat} # format: {Chatroom_obj.chat_id: Chatroom_obj}
 Chatnames = {'System':0, 'Claire Funing':1} # format: {chatname: chat_id}

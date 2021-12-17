@@ -5,8 +5,8 @@ import threading
 import sys
 import queue
 
-serverName = '10.60.0.116'
-serverPort = 6795
+serverName = '10.169.0.103'
+serverPort = 6796
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
@@ -44,15 +44,17 @@ def receive_msg():
         except Exception as err:
             return err
 
-def add_user_client():
-   new_user = input("Enter username of the user you want to add to the chat!") #add Leah (lteffera)
-   clientSocket.send(my_user.user_id + "," + new_user + "," + my_chat_room + "," + 'add_user_client')
-   message = clientSocket.recv(1024) 
-   print(('From Server:'), message)
 
-def delete_user_client(my_user): 
+def add_user_client():
+   new_user = input("Enter username of the user you want to add to the chat!") 
+   input_str = my_user.user_id + "," + new_user + "," + "Claire Funing" + "," + "add_user_client"
+   clientSocket.send(input_str.encode())
+   message = clientSocket.recv(1024) 
+   print(('From Server:'), message.decode())
+
+def delete_user_client(): 
   user_begone_id = input("Enter user to delete!")
-  clientSocket.send()
+  clientSocket.send(my_user.user_id + "," + user_begone_id + "," + "Claire Funing" + "," + "delete_user_client")
   message = clientSocket.recv(1024) 
   print(('From Server:'), message)
 
@@ -119,24 +121,37 @@ def get_my_chats_client(my_user):
   print(message)
 
 def login_client():
-    pass
+   #maybe use a while loop? while loggedin = false,
+   logged_in = False
+   while logged_in == False:
+      username,password = input("To log in, please enter your username,password").split(",")
+      clientSocket.send(username + "," + password + "," + "login_client")
+      message = clientSocket.recv(1024) 
+      print(("From Server:"), message.decode()) 
+      if message == "1": 
+         logged_in = True
+         print("You,{},are now logged in!".format(username))
+      elif message == "0": 
+         print("Sorry, looks like you aren't in the system.")
+         break
 
 command_dict = {"login":login_client,"add_user_client":add_user_client,"delete_user_client":delete_user_client,
-    "load_chatroom_client":load_chatroom_client, "send_message_client":send_message_client,"create_chatroom_client":create_chatroom_client}
+    "load_chatroom_client":load_chatroom_client, "send_message_client":send_message_client,
+    "create_chatroom_client":create_chatroom_client, "login_client":login_client}
 print("Welcome to OurChat, an interactive messaging system on your command line!")
 print("Available commands are: \n To load a chatroom: type load_chatroom_client; \n To send a message: type send_message_client; \n To create a chatroom: type create_chatroom_client \n"+
-"To add a user: type add_user_client; \n to delete a user: type delete_user_client\n")
+"To add a user: type add_user_client; \n to delete a user: type delete_user_client\n To login: type login_client\n")
 print("To continue, please enter one of the following commands below, type q to quit. \n")
-cmd_queue = queue.Queue()
-stdout_lock = threading.Lock()
-dj = threading.Thread(target=console, args=(cmd_queue, ))
-dj.start()
+# cmd_queue = queue.Queue()
+# stdout_lock = threading.Lock()
+# dj = threading.Thread(target=console, args=(cmd_queue, ))
+# dj.start()
 receive_thread = threading.Thread(target=receive_msg)
 receive_thread.start()
 while True:
     
-    print("To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n")
-    print("To add a user: type add_user_client; to delete a user: type delete_user_client")
+    # print("To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n")
+    # print("To add a user: type add_user_client; to delete a user: type delete_user_client")
     
     #user_input = input("To continue, please enter one of the following commands below, type q to quit. \n")
     
@@ -162,15 +177,17 @@ while True:
         action()
     elif cmd == "send_message_client":
         action(my_user)
-        #new_thread = threading.Thread(target=action(my_user))
-        #new_thread.start()
-        #boolean = action(my_user)
-        #while True:
-            #boolean = action(my_user)
-            #if boolean == False:
-            #    break
+        new_thread = threading.Thread(target=action(my_user))
+        new_thread.start()
+        boolean = action(my_user)
+        while True:
+            boolean = action(my_user)
+            if boolean == False:
+               break
     elif cmd == "create_chatroom_client":
         action(my_user)
+    elif cmd == "login_client":
+        action()
 
 
     
