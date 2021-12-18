@@ -27,7 +27,7 @@ def login_server(username,password,conn):
         nak = "0"
         conn.send(nak.encode())
         print("No match, sending 0 back...")
-def add_user_server(user_id, new_user_id, chatroom_name, conn): 
+def add_user_server(user_id, new_user_id, chatroom_name,conn,lock): 
     # 2 people private chat 
     # 3rd person,create a new chatroom 
   chatid = structure.Chatnames.get(chatroom_name)
@@ -49,20 +49,14 @@ def add_user_server(user_id, new_user_id, chatroom_name, conn):
   if new_user_id in chat_users:  
     conn.send("User is already in chat".encode())
   else: 
+    lock.acquire()
     new_user_obj = structure.Chat_user_obj(new_user_id,datetime.datetime.now())
     this_chat_obj.chat_users.append(new_user_obj)
     print("Chat object update: history, userlist, chat id ", chat_users,this_chat_obj.chat_id)  
     message = ("Added new user {uid} to the chat").format(uid = new_user_id)
     print("message",message)
-    
-    # updates the newly added user's last pushed time 
-    # this_chat_obj.chat_users[-1].last_pushed_time = datetime.datetime.now() 
-    # structure.Chat_user3.last_pushed_time = datetime.datetime.now()  
-    
-    #add the new chat id to the new user's list of chats
-    # structure.Chat_user3.chats.append(chatid)
-    
-    # update the user's chat list with the chat id
+    lock.release()
+
     this_user_obj.chats.append(chatid)
     print("New user object update: ",this_user_obj.user_id,this_user_obj.chats)
      #send confirmation message back to the client 
@@ -72,26 +66,44 @@ def add_user_server(user_id, new_user_id, chatroom_name, conn):
     send_message_server(new_user_id, chatroom_name, message,conn)
     #when a new user is added to a chat, update chat's name? 
 
-#don't need if else for block of code w/ messages, just only if # users is 0
+# todo: account for a) case where # users in chat is 0
+# and b) case where user to delete is not in the chat. 
 def delete_user_server(user_id, user_begone_id, chatroom_name,conn,lock):
   chatid = structure.Chatnames.get(chatroom_name)
   this_chat_obj = structure.Chats.get(chatid)
   begone_user_obj = structure.Users.get(user_begone_id)
-  print("hello!")
   chat_users_list = []
   for obj in this_chat_obj.chat_users:
       chat_users_list.append(obj.user_id)
-  print(str(chat_users_list))
-  print(begone_user_obj.user_id)
+#   print("before deleting user: ",str(chat_users_list))
+  
+#   testbool=user_begone_id in chat_users_list
+#   print("is the user in the list?",testbool)
+#   print("# users in chat rn",len(this_chat_obj.chat_users))
 
-  if structure.Chat_user_obj(user_begone_id) in chat_users_list: 
-    lock.aquire()
-    this_chat_obj.chat_users.remove(begone_user_obj) 
+  if user_begone_id in chat_users_list: #I need to handle if the user to delete isn't in the list
+    lock.acquire()
+    # print("deleting user!")
+    chat_obj_list = this_chat_obj.chat_users
+    count=0
+    for obj in chat_obj_list: 
+        if obj.user_id == user_begone_id:
+            # print("counter rn:",count)
+            this_chat_obj.chat_users.remove(this_chat_obj.chat_users[count])
+            # print("# users in chat rn, loop",len(this_chat_obj.chat_users))
+        count=count+1
+    # print("# users in chat rn, loop exited",len(this_chat_obj.chat_users))
     lock.release()
+    # print("user deleted!")
+    # chat_users_list_2 = []
+    # for obj in this_chat_obj.chat_users:
+    #   chat_users_list_2.append(obj.user_id)
+    
+    # print('Current list of users in Claire Funing chat:',str(chat_users_list_2))
     message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
     conn.send(message.encode())
-    print('Current list of users in Claire Funing chat:',str(chat_users_list))
     send_message_server(user_id, chatroom_name,message,conn)
+
     #check number of users
     # if len(this_chat_obj.chat_users) == 0: 
     #   #remove chatroom name from chatnames
@@ -245,7 +257,7 @@ def threaded(c):
                     elif fctn == "add_user_client":
                         print("here's what parsed looks like:" + "parsed: " + parsed[0] + "," + parsed[1] + "," + parsed[2])
                         print(type(parsed[0]),type(parsed[1]),type(parsed[2]))
-                        add_user_server(parsed[0],parsed[1],parsed[2],c)
+                        add_user_server(parsed[0],parsed[1],parsed[2],c,lock)
                     elif fctn == "delete_user_client":
                         delete_user_server(parsed[0],parsed[1],parsed[2],c,lock)
                     elif fctn == "login_client":

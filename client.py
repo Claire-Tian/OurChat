@@ -6,7 +6,7 @@ import sys
 import queue
 import multiprocessing
 
-serverName = '10.7.4.8'
+serverName = '10.43.240.80'
 serverPort = 6796
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
