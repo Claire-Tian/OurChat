@@ -3,6 +3,7 @@ from socket import *
 from _thread import *
 import threading
 import datetime
+import multiprocessing
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
 # Prepare a server socket
@@ -12,19 +13,20 @@ serverSocket.bind((serverHost,serverPort))
 serverSocket.listen(1) 
 list_of_connections = {}
 
+# Changed implementation, using lookup with key 
+# not using lock methods here, because we aren't writing to structure
 def login_server(username,password,conn): 
     print("current username and password:",username,type(username),password,type(password))
-    match = False
-    userObjList = structure.Users.values()
-    for userObj in userObjList: 
-        print("current user testing against",userObj.user_id,userObj.password)
-        if (userObj.user_id == username) and (userObj.password == password):
-            match = True
-            conn.send("1".encode())
-            print("Match, sending 1 back...",userObj.user_id,userObj.password)
-    if match == False: 
-        conn.send("0".encode())
-        print("No match, sending 0 back...",userObj.user_id,userObj.password)
+    retrieved_user = structure.Users.get(username) 
+    if retrieved_user!= None and retrieved_user.password == password:
+        ack = "1"
+        conn.send(ack.encode())
+        print("Match, sending 1 back...")
+        print("retrieved user user_id + password",retrieved_user.user_id,retrieved_user.password)
+    else:
+        nak = "0"
+        conn.send(nak.encode())
+        print("No match, sending 0 back...")
 def add_user_server(user_id, new_user_id, chatroom_name, conn): 
     # 2 people private chat 
     # 3rd person,create a new chatroom 
@@ -70,32 +72,39 @@ def add_user_server(user_id, new_user_id, chatroom_name, conn):
     send_message_server(new_user_id, chatroom_name, message,conn)
     #when a new user is added to a chat, update chat's name? 
 
-def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
+#don't need if else for block of code w/ messages, just only if # users is 0
+def delete_user_server(user_id, user_begone_id, chatroom_name,conn,lock):
   chatid = structure.Chatnames.get(chatroom_name)
   this_chat_obj = structure.Chats.get(chatid)
   begone_user_obj = structure.Users.get(user_begone_id)
+  print("hello!")
   chat_users_list = []
   for obj in this_chat_obj.chat_users:
       chat_users_list.append(obj.user_id)
-  if structure.Chat_user_obj(user_begone_id) in chat_users_list: 
-    this_chat_obj.chat_users.remove(begone_user_obj) 
-    #check number of users
-    if len(this_chat_obj) == 0: 
-      #remove chatroom name from chatnames
-      structure.Chatnames.remove(chatroom_name)
-      # remove the chat from the chatroom dict
-      structure.Chats.pop(this_chat_obj) 
-      # client send_message("User, you are not in this chat anymore")
-      message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
-      conn.send(message.encode())
-      # send confirmation message back to client. 
-      send_message_server(user_id,chatroom_name,message,conn)
-    else: 
-        message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
-        conn.send(message.encode())
-        print('Current list of users in Claire Funing chat:',str(chat_users_list))
-        send_message_server(user_id, chatroom_name,message,conn)
+  print(str(chat_users_list))
+  print(begone_user_obj.user_id)
 
+  if structure.Chat_user_obj(user_begone_id) in chat_users_list: 
+    lock.aquire()
+    this_chat_obj.chat_users.remove(begone_user_obj) 
+    lock.release()
+    message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
+    conn.send(message.encode())
+    print('Current list of users in Claire Funing chat:',str(chat_users_list))
+    send_message_server(user_id, chatroom_name,message,conn)
+    #check number of users
+    # if len(this_chat_obj.chat_users) == 0: 
+    #   #remove chatroom name from chatnames
+    #   structure.Chatnames.remove(chatroom_name)
+    #   # remove the chat from the chatroom dict
+    #   structure.Chats.pop(this_chat_obj) 
+    #   # client send_message("User, you are not in this chat anymore")
+    #   message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
+    #   conn.send(message.encode())
+    #   # send confirmation message back to client. 
+    #   send_message_server(user_id,chatroom_name,message,conn)
+
+#
 def load_chatroom_server(user_id, chatroom_name, conn):
   #get corresponding chat_id from chat_name in Chatnames dictionary
     chatid = structure.Chatnames.get(chatroom_name)
@@ -211,6 +220,7 @@ def remove_conn(conn_user_id):
                     user.status = 0
 
 def threaded(c):
+    lock = multiprocessing.Lock()
     this_user_id = ''
     print("in threaded")
     while True:
@@ -237,7 +247,7 @@ def threaded(c):
                         print(type(parsed[0]),type(parsed[1]),type(parsed[2]))
                         add_user_server(parsed[0],parsed[1],parsed[2],c)
                     elif fctn == "delete_user_client":
-                        delete_user_server(parsed[0],parsed[1],parsed[2],c)
+                        delete_user_server(parsed[0],parsed[1],parsed[2],c,lock)
                     elif fctn == "login_client":
                         login_server(parsed[0],parsed[1],c)
                     elif fctn == "quit":

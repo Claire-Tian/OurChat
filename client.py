@@ -4,8 +4,9 @@ from _thread import *
 import threading
 import sys
 import queue
+import multiprocessing
 
-serverName = '10.169.0.103'
+serverName = '10.7.4.8'
 serverPort = 6796
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
@@ -122,18 +123,15 @@ def get_my_chats_client(my_user):
 
 def login_client():
    #maybe use a while loop? while loggedin = false,
-   logged_in = False
-   while logged_in == False:
-      username,password = input("To log in, please enter your username,password").split(",")
-      clientSocket.send(username + "," + password + "," + "login_client")
-      message = clientSocket.recv(1024) 
-      print(("From Server:"), message.decode()) 
-      if message == "1": 
-         logged_in = True
-         print("You,{},are now logged in!".format(username))
-      elif message == "0": 
-         print("Sorry, looks like you aren't in the system.")
-         break
+    username,password = input("To log in, please enter your username,password").split(",")
+    clientSocket.send(username + "," + password + "," + "login_client")
+    message = clientSocket.recv(1024) 
+    print(("From Server:"), message.decode()) 
+    if message == "1": 
+        print("You,{name},are now logged in!".format(name=username))
+    elif message == "0": 
+        print("Sorry, looks like you aren't in the system.")
+
 
 command_dict = {"login":login_client,"add_user_client":add_user_client,"delete_user_client":delete_user_client,
     "load_chatroom_client":load_chatroom_client, "send_message_client":send_message_client,
