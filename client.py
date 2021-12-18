@@ -10,7 +10,7 @@ serverPort = 6789
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 # additional protocol & new socket dedicated to listen, server be able to know which is which
-
+lock = threading.Lock()
 
 my_user = structure.User_obj('Claire','123') # need to modify after demo, maybe change to a string
 my_chat_room = ''
@@ -53,11 +53,13 @@ def load_chatroom_client():
    chatroom_name = input("Please enter a chatroom name: ")
    input_str = my_user.user_id + "," + chatroom_name + "," + "load_chatroom_client"
    clientSocket.send(input_str.encode())
-   global my_chat_room
    #print('chat room name in load_chat_room_client before recv: ',my_chat_room)
 #   # server side code, returns chatroom
    message = clientSocket.recv(1024)
+   lock.acquire()
+   global my_chat_room
    my_chat_room = chatroom_name
+   lock.release()
    print("***************************************************")
    print('Current chatroom: ',my_chat_room)
    print("Unread messages: ")
@@ -66,6 +68,7 @@ def load_chatroom_client():
 def send_message_client(my_user):
     #s = str("(" + my_user.user_id + ") > ")
     chat_message = input("(Claire) > ")
+    print('')
     #print('chat room name in send message client: ',my_chat_room)
     input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
     #print('send_message_client input str ',input_str)
@@ -73,8 +76,6 @@ def send_message_client(my_user):
     #print('sending chat_message to the server: ',chat_message)
     message = clientSocket.recv(1024)
     print(message.decode())
-    chat_message = input("(Claire) > ")
-    print('')
     #return True
 
     
@@ -93,7 +94,10 @@ def create_chatroom_client(my_user):
     print ('From Server:', message)
     if message == "Chatroom creation successful!":
        # move client's status to the new chatroom
+        lock.acquire()
+        global my_chat_room
         my_chat_room = chatroom_name
+        lock.release()
 
 def get_my_chats_client(my_user):
   #sent back a list of chatrooms from server, which are displayed in terminal

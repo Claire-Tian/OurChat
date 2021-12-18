@@ -72,15 +72,22 @@ def load_chatroom_server(user_id, chatroom_name, conn):
             #get last_pushed_time of this user
             for user in this_chat_obj.chat_users:
                 if user.user_id == user_id:
+                    print("User ID before load: ",user.user_id)
+                    print("User Status before load: ",user.status)
                     user_time = user.last_pushed_time
+                    lock.acquire()
                     user.status = 1
+                    lock.release()
+                    print("User status after load: ",user.status)
                     i = this_chat_obj.chat_users.index(user)
                     # get messages after user's last_pushed_time
                     m = []
                     for msg in this_chat_obj.chat_history:
                         if msg.time_stamp > user_time:
-                            m.append(str(msg))
+                            m.append(str(msg) + "\n")
+                    lock.acquire()
                     this_chat_obj.chat_users[i].last_pushed_time = datetime.datetime.now()
+                    lock.release()
                     conn.send(str(m).encode())
             print("loaded chatroom")
         else:
@@ -102,12 +109,14 @@ def send_message_server(user_id, chatroom_name, content, conn):
             #search for chat_id in Chats hash table
             this_chat_obj = structure.Chats.get(chatid)
             # Add “client_id, time_stamp = now, message” to history field in chat_id
+            lock.acquire()
             this_chat_obj.chat_history.append(structure.Message_obj(user_id,datetime.datetime.now(),content))
+            lock.release()
             # Push all unread messages to all active users in the chat, change their last_pushed_time to now
             #print(this_chat_obj.chat_history)
             for user in this_chat_obj.chat_users:
                 print("User ID: ",user.user_id)
-                print("User status: ",user.status)
+                print("User status in send: ",user.status)
                 if user.status == 1:
                     user_time = user.last_pushed_time
                     #print("in for loop")
@@ -121,7 +130,9 @@ def send_message_server(user_id, chatroom_name, content, conn):
                     conn_i = list_of_connections.get(user.user_id)
                     to_send = str(m)
                     conn_i.send(to_send.encode())
+                    lock.acquire()
                     user.last_pushed_time = datetime.datetime.now()
+                    lock.release()
                     print("sent to " + user.user_id)
 
 
@@ -173,12 +184,16 @@ def create_chatroom_server(user_id, chat_room_name, other_users,conn):
 def remove_conn(conn_user_id):
     # make status of this user 0 in all its chats
     if conn_user_id in list_of_connections:
+        lock.acquire()
         list_of_connections.pop(conn_user_id)
+        #lock.release()
         this_user_chats = structure.Users.get(conn_user_id).chats
         for c_id in this_user_chats:
             for user in structure.Chats.get(c_id).chat_users:
                 if user.user_id == conn_user_id:
+                    #lock.acquire()
                     user.status = 0
+        lock.release()
 
 def threaded(c):
     this_user_id = ''
@@ -190,7 +205,9 @@ def threaded(c):
             if message:
                 parsed = message.split(',')
                 this_user_id = parsed[0]
+                lock.acquire()
                 list_of_connections[this_user_id] = c # append to list of connections
+                lock.release()
                 if this_user_id in structure.Users:
                     fctn = parsed[-1]
                     if fctn == "load_chatroom_client":
