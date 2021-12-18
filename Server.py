@@ -183,8 +183,8 @@ def create_chatroom_server(user_id, chat_room_name, other_users,conn):
 
 def remove_conn(conn_user_id):
     # make status of this user 0 in all its chats
+    lock.acquire()
     if conn_user_id in list_of_connections:
-        lock.acquire()
         list_of_connections.pop(conn_user_id)
         #lock.release()
         this_user_chats = structure.Users.get(conn_user_id).chats
@@ -193,7 +193,7 @@ def remove_conn(conn_user_id):
                 if user.user_id == conn_user_id:
                     #lock.acquire()
                     user.status = 0
-        lock.release()
+    lock.release()
 
 def threaded(c):
     this_user_id = ''
