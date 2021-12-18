@@ -148,7 +148,8 @@ def get_my_chats_server(user_id,conn):
             if structure.Chatnames[cn] == chat:
                 print(cn)
                 user_chatnames.append(cn)
-    
+    print('user chatnames: ',user_chatnames)
+    user_chatnames = list(set(user_chatnames))
     #Print content of “chats” field for this user in Users hashtable
     conn.send(str(user_chatnames).encode())
 

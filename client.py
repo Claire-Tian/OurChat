@@ -12,7 +12,7 @@ clientSocket.connect((serverName,serverPort))
 # additional protocol & new socket dedicated to listen, server be able to know which is which
 lock = threading.Lock()
 
-my_user = structure.User_obj('Claire','123') # need to modify after demo, maybe change to a string
+my_user = structure.User_obj('Funing','456') # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 '''def listen_for_messages():
