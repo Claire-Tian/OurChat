@@ -178,6 +178,7 @@ def create_chatroom_server(user_id, chat_room_name, other_users,conn):
     structure.Chats[chat_id] = structure.Chatroom_obj(chat_id,chatuser_obj_list,[welcome_message])
     # Add new_chat_id to chats list in Users hash table for all involved users
     for user in structure.Users:
+        print("location of each user's chat: ", hex(id(structure.Users.get(user).chats)))
         structure.Users.get(user).chats.append(chat_id)
     lock.release()
     # Add to “history” a message “new chat chat_name created” (i.e. [system, time_stamp, message]), send_message([system, time_stamp, message]))
