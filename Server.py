@@ -8,13 +8,14 @@ import multiprocessing
 serverSocket = socket(AF_INET, SOCK_STREAM)
 # Prepare a server socket
 serverHost = ''
-serverPort = 6795
+serverPort = 6796
 serverSocket.bind((serverHost,serverPort)) 
 serverSocket.listen(1) 
 list_of_connections = {}
+lock = threading.Lock()
 
 # Changed implementation, using lookup with key 
-# not using lock methods here, because we aren't writing to structure
+# not using lock methods here, because we aren't writing to structure.py
 def login_server(username,password,conn): 
     print("current username and password:",username,type(username),password,type(password))
     retrieved_user = structure.Users.get(username) 
@@ -75,11 +76,6 @@ def delete_user_server(user_id, user_begone_id, chatroom_name,conn,lock):
   chat_users_list = []
   for obj in this_chat_obj.chat_users:
       chat_users_list.append(obj.user_id)
-#   print("before deleting user: ",str(chat_users_list))
-  
-#   testbool=user_begone_id in chat_users_list
-#   print("is the user in the list?",testbool)
-#   print("# users in chat rn",len(this_chat_obj.chat_users))
 
   if user_begone_id in chat_users_list: #I need to handle if the user to delete isn't in the list
     lock.acquire()
@@ -103,7 +99,7 @@ def delete_user_server(user_id, user_begone_id, chatroom_name,conn,lock):
     message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
     conn.send(message.encode())
     send_message_server(user_id, chatroom_name,message,conn)
-
+    
     #check number of users
     # if len(this_chat_obj.chat_users) == 0: 
     #   #remove chatroom name from chatnames
@@ -115,12 +111,12 @@ def delete_user_server(user_id, user_begone_id, chatroom_name,conn,lock):
     #   conn.send(message.encode())
     #   # send confirmation message back to client. 
     #   send_message_server(user_id,chatroom_name,message,conn)
-
-#
+  else:
+    conn.send("Sorry, you're not in the group chat.")
 def load_chatroom_server(user_id, chatroom_name, conn):
   #get corresponding chat_id from chat_name in Chatnames dictionary
     chatid = structure.Chatnames.get(chatroom_name)
-    print(chatid)
+    print("Loading chatroom: ",chatroom_name)
     if chatid == None:
         conn.send(b"Chatroom does not exist.")
     else:
@@ -131,27 +127,34 @@ def load_chatroom_server(user_id, chatroom_name, conn):
             #get last_pushed_time of this user
             for user in this_chat_obj.chat_users:
                 if user.user_id == user_id:
+                    print("User ID before load: ",user.user_id)
+                    print("User Status before load: ",user.status)
                     user_time = user.last_pushed_time
+                    lock.acquire()
                     user.status = 1
+                    lock.release()
+                    print("User status after load: ",user.status)
                     i = this_chat_obj.chat_users.index(user)
-            # get messages after user's last_pushed_time
-            m = []
-            for msg in this_chat_obj.chat_history:
-                if msg.time_stamp > user_time:
-                    m.append(str(msg))
-            this_chat_obj.chat_users[i].last_pushed_time = datetime.datetime.now()
-            conn.send(str(m).encode())
+                    # get messages after user's last_pushed_time
+                    m = []
+                    for msg in this_chat_obj.chat_history:
+                        if msg.time_stamp > user_time:
+                            m.append(str(msg) + "\n")
+                    lock.acquire()
+                    this_chat_obj.chat_users[i].last_pushed_time = datetime.datetime.now()
+                    lock.release()
+                    conn.send(str(m).encode())
             print("loaded chatroom")
         else:
             conn.send(b"You are not a member of this chatroom.")
 
 def send_message_server(user_id, chatroom_name, content, conn):
     # Get current chat_id of client
-    print(user_id)
+    print("Current user ID: ",user_id)
     chatid = structure.Chatnames.get(chatroom_name)
-    print(chatroom_name)
+    print("Current chatroom name: ",chatroom_name)
     #print(structure.Chatnames)
-    print(chatid)
+    #print(chatid)
     if chatroom_name == '':
         conn.send(b"You are not in any chatroom.")
     else:
@@ -160,26 +163,30 @@ def send_message_server(user_id, chatroom_name, content, conn):
         else:
             #search for chat_id in Chats hash table
             this_chat_obj = structure.Chats.get(chatid)
+            lock.acquire()
             this_chat_obj.chat_history.append(structure.Message_obj(user_id,datetime.datetime.now(),content))
+            lock.release()
             # Push all unread messages to all active users in the chat, change their last_pushed_time to now
             #print(this_chat_obj.chat_history)
             for user in this_chat_obj.chat_users:
-                print(user.user_id)
-                print(user.status)
+                print("User ID: ",user.user_id)
+                print("User status in send: ",user.status)
                 if user.status == 1:
                     user_time = user.last_pushed_time
-                    print("in for loop")
+                    #print("in for loop")
                     # get messages after user's last_pushed_time
                     m = []
                     for msg in this_chat_obj.chat_history:
-                        print(str(msg))
+                        #print(str(msg))
                         if msg.time_stamp > user_time:
                             m.append(str(msg) + "\n")
-                    print(m)
+                    print("Message to push:",m)
                     conn_i = list_of_connections.get(user.user_id)
                     to_send = str(m)
                     conn_i.send(to_send.encode())
+                    lock.acquire()
                     user.last_pushed_time = datetime.datetime.now()
+                    lock.release()
                     print("sent to " + user.user_id)
 
 
@@ -187,10 +194,17 @@ def get_my_chats_server(user_id,conn):
   #Get user_id of client
     userObj = structure.Users.get(user_id,[])
     if not userObj:
-        conn.send("User doesn't exist in the database")
+        conn.send("User doesn't exist in the database".encode())
     chats = userObj.chats
-
-    conn.send(str(chats).encode()) # TO DO: to beautify
+    user_chatnames = []
+    for chat in chats:
+        for cn in structure.Chatnames:
+            if structure.Chatnames[cn] == chat:
+                print(cn)
+                user_chatnames.append(cn)
+    print('user chatnames: ',user_chatnames)
+    user_chatnames = list(set(user_chatnames))
+    conn.send(str(user_chatnames).encode())
 
 
 def create_chatroom_server(user_id, chat_room_name, other_users,conn):
@@ -203,54 +217,65 @@ def create_chatroom_server(user_id, chat_room_name, other_users,conn):
 
     if chat_room_name in structure.Chatnames:
         conn.send("Chat room name {} already exists, please try a new name.".format(chat_room_name))
-    chat_id = len(structure.Chatnames) + 1
+    chat_id = len(structure.Chatnames)
+    lock.acquire()
     structure.Chatnames[chat_room_name] = chat_id
     welcome_message = structure.Message_obj('System',content='Welcome to your new chatroom {}!'.format(chat_room_name))
     
     # create update chatuser_obj for each existing user for the last_pushed_time
     chatuser_obj_list = []
     for user_id in [user_id] + other_users:
-        new_chatuser_obj = structure.Chat_user_obj(user_id = user_id, status = 0, last_pushed_time = datetime.datetime.now())
+        new_chatuser_obj = structure.Chat_user_obj(user_id = user_id, last_pushed_time = datetime.datetime.now())
         chatuser_obj_list.append(new_chatuser_obj)
 
     structure.Chats[chat_id] = structure.Chatroom_obj(chat_id,chatuser_obj_list,[welcome_message])
     # Add new_chat_id to chats list in Users hash table for all involved users
     for user in structure.Users:
-        user.chats.append(chat_id)
-   
-    conn.send("Chatroom creation successful!")
+        print("location of each user's chat: ", hex(id(structure.Users.get(user).chats)))
+        structure.Users.get(user).chats.append(chat_id)
+    lock.release()
+
+    conn.send(b"Chatroom creation successful!")
     # broadcast to every usr?
+    print("Chats database after create: ", structure.Chats)
+    print("Chatnames database after create: ", structure.Chatnames)
 
 def remove_conn(conn_user_id):
     # make status of this user 0 in all its chats
+    lock.acquire()
     if conn_user_id in list_of_connections:
         list_of_connections.pop(conn_user_id)
+        #lock.release()
         this_user_chats = structure.Users.get(conn_user_id).chats
         for c_id in this_user_chats:
             for user in structure.Chats.get(c_id).chat_users:
                 if user.user_id == conn_user_id:
+                    #lock.acquire()
                     user.status = 0
+    lock.release()
 
 def threaded(c):
     lock = multiprocessing.Lock()
     this_user_id = ''
-    print("in threaded")
+    #print("in threaded")
     while True:
         try:
             message = c.recv(1024).decode()
-            print(message)
+            #print(message)
             if message:
                 parsed = message.split(',')
                 this_user_id = parsed[0]
+                lock.acquire()
                 list_of_connections[this_user_id] = c # append to list of connections
+                lock.release()
                 if this_user_id in structure.Users:
                     fctn = parsed[-1]
                     if fctn == "load_chatroom_client":
                         load_chatroom_server(this_user_id, parsed[1],c)
                     elif fctn == "send_message_client":
                         # message body = parsed[1], this chat room = parsed[-2]
-                        print("in threaded function")
-                        print(parsed[-2])
+                        #print("in threaded function")
+                        #print(parsed[-2])
                         send_message_server(this_user_id, parsed[-2],parsed[1],c)
                     elif fctn == "get_my_chats_client":
                         get_my_chats_server(this_user_id,c)
@@ -262,6 +287,11 @@ def threaded(c):
                         delete_user_server(parsed[0],parsed[1],parsed[2],c,lock)
                     elif fctn == "login_client":
                         login_server(parsed[0],parsed[1],c)
+                    elif fctn == "create_chatroom_client":
+                        o_users = []
+                        for i in range(2,len(parsed)-1):
+                            o_users.append(parsed[i])
+                        create_chatroom_server(this_user_id, parsed[1], o_users,c)
                     elif fctn == "quit":
                         c.close()
 

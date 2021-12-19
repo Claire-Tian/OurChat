@@ -12,9 +12,9 @@ class User_obj:
 # define object for users in "users" field of Chats hashtable
 # local to each chatroom
 class Chat_user_obj:
-    def __init__(self, user_id = '', status = 0, last_pushed_time = datetime.datetime.now()):
+    def __init__(self, user_id = '', last_pushed_time = datetime.datetime.now()):
         self.user_id = user_id
-        self.status = status
+        self.status = 0
         self.last_pushed_time = last_pushed_time
 
 # define object for chats in Chats hashtable
