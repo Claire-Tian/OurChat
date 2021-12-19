@@ -6,8 +6,8 @@ import sys
 import queue
 import multiprocessing
 
-serverName = '10.43.240.80'
-serverPort = 6796
+serverName = '192.168.1.168'
+serverPort = 6795
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
@@ -126,10 +126,10 @@ def login_client():
     username,password = input("To log in, please enter your username,password").split(",")
     clientSocket.send(username + "," + password + "," + "login_client")
     message = clientSocket.recv(1024) 
-    print(("From Server:"), message.decode()) 
-    if message == "1": 
+    print("From Server:", message.decode()) 
+    if message.decode() == "1": 
         print("You,{name},are now logged in!".format(name=username))
-    elif message == "0": 
+    elif message.decode() == "0": 
         print("Sorry, looks like you aren't in the system.")
 
 

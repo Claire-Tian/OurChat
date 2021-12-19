@@ -8,7 +8,7 @@ import multiprocessing
 serverSocket = socket(AF_INET, SOCK_STREAM)
 # Prepare a server socket
 serverHost = ''
-serverPort = 6796
+serverPort = 6795
 serverSocket.bind((serverHost,serverPort)) 
 serverSocket.listen(1) 
 list_of_connections = {}
