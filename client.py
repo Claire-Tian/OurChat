@@ -7,7 +7,7 @@ import queue
 import multiprocessing
 
 serverName = '192.168.1.168'
-serverPort = 6796
+serverPort = 6795
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 # additional protocol & new socket dedicated to listen, server be able to know which is which

@@ -8,7 +8,7 @@ import multiprocessing
 serverSocket = socket(AF_INET, SOCK_STREAM)
 # Prepare a server socket
 serverHost = ''
-serverPort = 6796
+serverPort = 6795
 serverSocket.bind((serverHost,serverPort)) 
 serverSocket.listen(1) 
 list_of_connections = {}
@@ -28,9 +28,9 @@ def login_server(username,password,conn):
         nak = "0"
         conn.send(nak.encode())
         print("No match, sending 0 back...")
-def add_user_server(user_id, new_user_id, chatroom_name,conn,lock): 
-    # 2 people private chat 
-    # 3rd person,create a new chatroom 
+
+
+def add_user_server(user_id, new_user_id, chatroom_name,conn): 
   chatid = structure.Chatnames.get(chatroom_name)
   #create user object for new user
   print(new_user_id)
@@ -39,6 +39,7 @@ def add_user_server(user_id, new_user_id, chatroom_name,conn,lock):
   print("New user object: ",this_user_obj.user_id,this_user_obj.chats)
   if chatid == None:
     conn.send("Chatroom does not exist.".encode())  
+  
   this_chat_obj = structure.Chats.get(chatid)
   
 # would like to be able to view users in chat users list for debugging purposes. 
@@ -56,9 +57,8 @@ def add_user_server(user_id, new_user_id, chatroom_name,conn,lock):
     print("Chat object update: history, userlist, chat id ", chat_users,this_chat_obj.chat_id)  
     message = ("Added new user {uid} to the chat").format(uid = new_user_id)
     print("message",message)
-    lock.release()
-
     this_user_obj.chats.append(chatid)
+    lock.release()
     print("New user object update: ",this_user_obj.user_id,this_user_obj.chats)
      #send confirmation message back to the client 
     conn.send(message.encode()) 
@@ -67,9 +67,8 @@ def add_user_server(user_id, new_user_id, chatroom_name,conn,lock):
     send_message_server(new_user_id, chatroom_name, message,conn)
     #when a new user is added to a chat, update chat's name? 
 
-# todo: account for a) case where # users in chat is 0
-# and b) case where user to delete is not in the chat. 
-def delete_user_server(user_id, user_begone_id, chatroom_name,conn,lock):
+# when the # of users = 0, the Chat is removed from all hashtables. 
+def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
   chatid = structure.Chatnames.get(chatroom_name)
   this_chat_obj = structure.Chats.get(chatid)
   begone_user_obj = structure.Users.get(user_begone_id)
@@ -101,16 +100,17 @@ def delete_user_server(user_id, user_begone_id, chatroom_name,conn,lock):
     send_message_server(user_id, chatroom_name,message,conn)
     
     #check number of users
-    # if len(this_chat_obj.chat_users) == 0: 
-    #   #remove chatroom name from chatnames
-    #   structure.Chatnames.remove(chatroom_name)
-    #   # remove the chat from the chatroom dict
-    #   structure.Chats.pop(this_chat_obj) 
-    #   # client send_message("User, you are not in this chat anymore")
-    #   message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
-    #   conn.send(message.encode())
-    #   # send confirmation message back to client. 
-    #   send_message_server(user_id,chatroom_name,message,conn)
+    if len(this_chat_obj.chat_users) == 0: 
+      #remove chatroom name from chatnames
+      lock.acquire()
+      structure.Chats.pop(chatid)
+      structure.Chatnames.pop(chatroom_name)
+      print("removal successful!")
+      lock.release()
+      # client send_message("User, you are not in this chat anymore")
+      message = ("Chatroom {chatname} is no longer in this chat").format(chatname = chatroom_name)
+      print(message)
+      conn.send(message.encode())
   else:
     conn.send("Sorry, you're not in the group chat.")
 def load_chatroom_server(user_id, chatroom_name, conn):
@@ -282,9 +282,9 @@ def threaded(c):
                     elif fctn == "add_user_client":
                         print("here's what parsed looks like:" + "parsed: " + parsed[0] + "," + parsed[1] + "," + parsed[2])
                         print(type(parsed[0]),type(parsed[1]),type(parsed[2]))
-                        add_user_server(parsed[0],parsed[1],parsed[2],c,lock)
+                        add_user_server(parsed[0],parsed[1],parsed[2],c)
                     elif fctn == "delete_user_client":
-                        delete_user_server(parsed[0],parsed[1],parsed[2],c,lock)
+                        delete_user_server(parsed[0],parsed[1],parsed[2],c)
                     elif fctn == "login_client":
                         login_server(parsed[0],parsed[1],c)
                     elif fctn == "create_chatroom_client":
