@@ -20,22 +20,6 @@ my_chat_room = ''
         message = clientSocket.recv(1024).decode()
         print("\n" + message)'''
 
-# make a thread that listens for messages to this client & print them
-#t = threading.Thread(target=listen_for_messages)
-# make the thread daemon so it ends whenever the main thread ends
-#.daemon = True
-# start the thread
-#t.start()
-
-
-#def receive_msg():
-    #while True:
-        #try:
-            #msg = clientSocket.recv(1024).decode()
-            #print(msg)
-        #except Exception as err:
-            #return err
-
 def add_user_client():
    new_user = input("Enter username of the user you want to add to the chat!") #add Leah (lteffera)
    clientSocket.send(my_user.user_id + new_user + my_chat_room + 'add_user_client')
@@ -65,9 +49,9 @@ def load_chatroom_client():
    print("Unread messages: ")
    print(message)
 
-def send_message_client(my_user):
+def send_message_client():
     #s = str("(" + my_user.user_id + ") > ")
-    chat_message = input("(Claire) > ")
+    chat_message = input("({}) > ".format(my_user.user_id))
     print('')
     #print('chat room name in send message client: ',my_chat_room)
     input_str = my_user.user_id + "," + chat_message + ','+ my_chat_room + "," + "send_message_client"
@@ -79,7 +63,7 @@ def send_message_client(my_user):
     #return True
 
     
-def create_chatroom_client(my_user):
+def create_chatroom_client():
     usernames = []
     chatroom_name = input("Please enter a name for your chatroom: ")
     username = input("Please enter a list of usernames that you'd like to add in your chatroom, deliminated by \';\': ")
@@ -100,7 +84,7 @@ def create_chatroom_client(my_user):
     print("***************************************************")
     print('Current chatroom: ',my_chat_room)
 
-def get_my_chats_client(my_user):
+def get_my_chats_client():
   #sent back a list of chatrooms from server, which are displayed in terminal
   input_str = my_user.user_id + "," + "get_my_chats_client"
   clientSocket.send(input_str.encode())
@@ -117,19 +101,8 @@ print("Welcome to OurChat, an interactive messaging system on your command line!
 print("Available commands are: \n To load a chatroom: type load; \n To send a message: type send; \n To create a chatroom: type create \n"+
 "To add a user: type add_user; \n to delete a user: type delete_user; \n to get a list of your chatrooms: type get_my_chat\n")
 print("To continue, please enter one of the following commands below, type q to quit. \n")
-#cmd_queue = queue.Queue()
-#stdout_lock = threading.Lock()
-#dj = threading.Thread(target=console, args=(cmd_queue, ))
-#dj.start()
 
 while True:
-    
-    #print("To load a chatroom: type load_chatroom_client; To send a message: type send_message_client; To create a chatroom: type create_chatroom_client \n")
-    #print("To add a user: type add_user_client; to delete a user: type delete_user_client")
-    
-    #user_input = input("To continue, please enter one of the following commands below, type q to quit. \n")
-    
-    #cmd = cmd_queue.get()
     cmd = input('> ')
     if cmd == 'q':
         s = my_user.user_id + ", quit"
@@ -147,23 +120,13 @@ while True:
     elif cmd == "delete_user":
         action()
     elif cmd == "load":
-        #print("in while loop")
         action()
     elif cmd == "send":
-        #receive_thread = threading.Thread(target=receive_msg)
-        #receive_thread.start()
-        action(my_user)
-        #new_thread = threading.Thread(target=action(my_user))
-        #new_thread.start()
-        #boolean = action(my_user)
-        #while True:
-            #boolean = action(my_user)
-            #if boolean == False:
-            #    break
+        action()
     elif cmd == "create":
-        action(my_user)
+        action()
     elif cmd == "get_my_chats":
-        action(my_user)
+        action()
 
     
     #action(stdout_lock)
