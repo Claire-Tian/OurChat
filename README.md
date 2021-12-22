@@ -1,7 +1,7 @@
 # OurChat
-Instructions for using ourChat 
-Run the Server code (enter python Server.py in the terminal) 
-Set the server name to your IP address, then run the client code (run python client.py in the terminal) 
+Instructions for using ourChat <br />
+Run the Server code (enter python Server.py in the terminal) <br />
+Set the server name to your IP address, then run the client code (run python client.py in the terminal) <br />
 Type in login, and then enter your username and password as “username, password” (username COMMA password). So “Leah,789”, “Claire,123” and “Funing,456” should all work. 
 Once logged in, load a chatroom by typing in load. You will be prompted for a chatroom name, enter “Claire Funing”.
 After this, you can send a message by typing in “send”
