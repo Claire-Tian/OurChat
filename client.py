@@ -13,7 +13,7 @@ clientSocket.connect((serverName,serverPort))
 # additional protocol & new socket dedicated to listen, server be able to know which is which
 lock = threading.Lock()
 
-my_user = structure.User_obj('Funing','456') # need to modify after demo, maybe change to a string
+my_user = None # need to modify after demo, maybe change to a string
 my_chat_room = ''
 
 '''def listen_for_messages():
@@ -23,14 +23,14 @@ my_chat_room = ''
 
 def add_user_client():
    new_user = input("Enter username of the user you want to add to the chat!") 
-   input_str = my_user.user_id + "," + new_user + "," + "Claire Funing" + "," + "add_user_client"
+   input_str = my_user.user_id + "," + new_user + "," + my_chat_room + "," + "add_user_client"
    clientSocket.send(input_str.encode())
    message = clientSocket.recv(1024) 
    print(('From Server:'), message.decode())
 
 def delete_user_client(): 
   user_begone_id = input("Enter user to delete!")
-  clientSocket.send(my_user.user_id + "," + user_begone_id + "," + "Claire Funing" + "," + "delete_user_client")
+  clientSocket.send(my_user.user_id + "," + user_begone_id + "," + my_chat_room + "," + "delete_user_client")
   message = clientSocket.recv(1024) 
   print(('From Server:'), message)
 
@@ -42,13 +42,15 @@ def load_chatroom_client():
    #print('chat room name in load_chat_room_client before recv: ',my_chat_room)
 #   # server side code, returns chatroom
    message = clientSocket.recv(1024)
-   lock.acquire()
-   global my_chat_room
-   my_chat_room = chatroom_name
-   lock.release()
-   print("***************************************************")
-   print('Current chatroom: ',my_chat_room)
-   print("Unread messages: ")
+   decoded_message = message.decode()
+   if decoded_message != "Chatroom does not exist." or decoded_message != "You are not a member of this chatroom.":
+       lock.acquire()
+       global my_chat_room
+       my_chat_room = chatroom_name
+       lock.release()
+       print("***************************************************")
+       print('Current chatroom: ',my_chat_room)
+       print("Unread messages: ")
    print(message)
 
 def send_message_client():
@@ -101,7 +103,8 @@ def login_client():
     print("From Server:", message.decode()) 
     if message.decode() == "1": 
         print("You,{name},are now logged in!".format(name=username))
-        my_user = structure.Users.get(username)
+        global my_user
+        my_user = structure.User_obj(username,password) 
         print('My user:',my_user,my_user.user_id,my_user.password,str(my_user.chats))
     elif message.decode() == "0": 
         print("Sorry, looks like you aren't in the system.") 

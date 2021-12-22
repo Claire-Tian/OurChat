@@ -31,41 +31,48 @@ def login_server(username,password,conn):
 
 
 def add_user_server(user_id, new_user_id, chatroom_name,conn): 
-  chatid = structure.Chatnames.get(chatroom_name)
-  #create user object for new user
-  print(new_user_id)
-  this_user_obj = structure.Users.get(new_user_id)
-  print("here are the params: ",str([user_id,new_user_id,chatroom_name,conn]))
-  print("New user object: ",this_user_obj.user_id,this_user_obj.chats)
-  if chatid == None:
-    conn.send("Chatroom does not exist.".encode())  
-  
-  this_chat_obj = structure.Chats.get(chatid)
-  
-# would like to be able to view users in chat users list for debugging purposes. 
-  chat_users = []
-  for obj in this_chat_obj.chat_users:
-      chat_users.append(obj.user_id)
-
-  print("Chat object: history, userlist, chat id - ", chat_users,this_chat_obj.chat_id)
-  if new_user_id in chat_users:  
-    conn.send("User is already in chat".encode())
+  print("chatroom name: ",chatroom_name)
+  if chatroom_name == "":
+      conn.send("You are not in the chatroom") # add else clause 
   else: 
-    lock.acquire()
-    new_user_obj = structure.Chat_user_obj(new_user_id,datetime.datetime.now())
-    this_chat_obj.chat_users.append(new_user_obj)
-    print("Chat object update: history, userlist, chat id ", chat_users,this_chat_obj.chat_id)  
-    message = ("Added new user {uid} to the chat").format(uid = new_user_id)
-    print("message",message)
-    this_user_obj.chats.append(chatid)
-    lock.release()
-    print("New user object update: ",this_user_obj.user_id,this_user_obj.chats)
-     #send confirmation message back to the client 
-    conn.send(message.encode()) 
+    chatid = structure.Chatnames.get(chatroom_name)
+    #create user object for new user
+    print(new_user_id)
+    this_user_obj = structure.Users.get(new_user_id)
+    print("here are the params: ",str([user_id,new_user_id,chatroom_name,conn]))
+    print("New user object: ",this_user_obj.user_id,this_user_obj.chats)
+    if chatid == None:
+      conn.send("Chatroom does not exist.".encode()) #add another else clause 
+    else: 
+      this_chat_obj = structure.Chats.get(chatid)
+      if chatroom_name == "":
+        conn.send("You are not in the chatroom")
+      else: 
+        print("current chat obj",this_chat_obj.chat_id,this_chat_obj.chat_users)
+        print(this_chat_obj.chat_users)
+        chat_users = []
+        for obj in this_chat_obj.chat_users:
+            chat_users.append(obj.user_id)
 
-    #push confirmation message to all users in the chatroom
-    send_message_server(new_user_id, chatroom_name, message,conn)
-    #when a new user is added to a chat, update chat's name? 
+        print("Chat object: history, userlist, chat id - ", chat_users,this_chat_obj.chat_id)
+        if new_user_id in chat_users:  
+          conn.send("User is already in chat".encode())
+        else: 
+         lock.acquire()
+         new_user_obj = structure.Chat_user_obj(new_user_id,datetime.datetime.now())
+         this_chat_obj.chat_users.append(new_user_obj)
+         print("Chat object update: history, userlist, chat id ", chat_users,this_chat_obj.chat_id)  
+         message = ("Added new user {uid} to the chat").format(uid = new_user_id)
+         print("message",message)
+         this_user_obj.chats.append(chatid)
+         lock.release()
+         print("New user object update: ",this_user_obj.user_id,this_user_obj.chats)
+       #send confirmation message back to the client 
+         conn.send(message.encode()) 
+
+       #push confirmation message to all users in the chatroom
+         send_message_server(new_user_id, chatroom_name, message,conn)
+       #when a new user is added to a chat, update chat's name? 
 
 # when the # of users = 0, the Chat is removed from all hashtables. 
 def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
@@ -73,50 +80,59 @@ def delete_user_server(user_id, user_begone_id, chatroom_name,conn):
   this_chat_obj = structure.Chats.get(chatid)
   begone_user_obj = structure.Users.get(user_begone_id)
   chat_users_list = []
-  for obj in this_chat_obj.chat_users:
-      chat_users_list.append(obj.user_id)
+  print(chatroom_name)
+  if chatid == None:
+      conn.send("Chatroom does not exist.".encode())
+  else: 
+   if chatroom_name == "":
+       conn.send("You are not in the chatroom")
+   else: 
 
-  if user_begone_id in chat_users_list: #I need to handle if the user to delete isn't in the list
-    lock.acquire()
-    # print("deleting user!")
-    chat_obj_list = this_chat_obj.chat_users
-    count=0
-    for obj in chat_obj_list: 
-        if obj.user_id == user_begone_id:
-            # print("counter rn:",count)
-            this_chat_obj.chat_users.remove(this_chat_obj.chat_users[count])
-            # print("# users in chat rn, loop",len(this_chat_obj.chat_users))
-        count=count+1
-    # print("# users in chat rn, loop exited",len(this_chat_obj.chat_users))
-    lock.release()
+    for obj in this_chat_obj.chat_users:
+        chat_users_list.append(obj.user_id)
+    print("length of chat list before removal",len(this_chat_obj.chat_users))
+    if user_begone_id in chat_users_list: #I need to handle if the user to delete isn't in the list
+        
+        chat_obj_list = this_chat_obj.chat_users
+        count=0
+        for obj in chat_obj_list: 
+            if obj.user_id == user_begone_id:
+                lock.acquire()
+                this_chat_obj.chat_users.remove(this_chat_obj.chat_users[count])
+                index1 = begone_user_obj.chats.index(chatid)
+                begone_user_obj.chats.pop(index1)
+                print("chat list after removal",begone_user_obj.chats)
+                # print("# users in chat rn, loop",len(this_chat_obj.chat_users)
+                count=count+1
+                lock.release()
     # print("user deleted!")
     # chat_users_list_2 = []
     # for obj in this_chat_obj.chat_users:
     #   chat_users_list_2.append(obj.user_id)
     
     # print('Current list of users in Claire Funing chat:',str(chat_users_list_2))
-    message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
-    conn.send(message.encode())
-    send_message_server(user_id, chatroom_name,message,conn)
-    
-    #check number of users
-    if len(this_chat_obj.chat_users) == 0: 
-      #remove chatroom name from chatnames
-      lock.acquire()
-      structure.Chats.pop(chatid)
-      structure.Chatnames.pop(chatroom_name)
-      print("removal successful!")
-      lock.release()
-      # client send_message("User, you are not in this chat anymore")
-      message = ("Chatroom {chatname} is no longer in this chat").format(chatname = chatroom_name)
-      print(message)
-      conn.send(message.encode())
-  else:
-    conn.send("Sorry, you're not in the group chat.")
+        message = ("User {uname} is no longer in this chat").format(uname = user_begone_id)
+        conn.send(message.encode())
+        send_message_server(user_id, chatroom_name,message,conn)
+        print("length of chat list",len(this_chat_obj.chat_users))
+        if len(this_chat_obj.chat_users) == 0: 
+        #remove chatroom name from chatnames
+            lock.acquire()
+            structure.Chats.pop(chatid)
+            structure.Chatnames.pop(chatroom_name)
+            print("removal successful!")
+            lock.release()
+        # client send_message("User, you are not in this chat anymore")
+            message = ("Chatroom {chatname} no longer exists").format(chatname = chatroom_name)
+            print(message)
+            conn.send(message.encode())
+
 def load_chatroom_server(user_id, chatroom_name, conn):
   #get corresponding chat_id from chat_name in Chatnames dictionary
     chatid = structure.Chatnames.get(chatroom_name)
     print("Loading chatroom: ",chatroom_name)
+    print("Printing the current user's chats:",structure.Users.get(user_id).chats)
+    print("current chat id", chatid)
     if chatid == None:
         conn.send(b"Chatroom does not exist.")
     else:
